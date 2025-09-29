@@ -31,6 +31,10 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -46,6 +50,15 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        genealogy: {
+          male: "hsl(var(--genealogy-male))",
+          female: "hsl(var(--genealogy-female))",
+          unknown: "hsl(var(--genealogy-unknown))",
+        },
+        tree: {
+          line: "hsl(var(--tree-line))",
+          "line-focus": "hsl(var(--tree-line-focus))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
