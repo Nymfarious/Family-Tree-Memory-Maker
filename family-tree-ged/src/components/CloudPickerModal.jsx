@@ -12,16 +12,16 @@ window.CloudPickerModal = function CloudPickerModal({ open, onClose, onChoose })
       <div className="modal">
         <h2>Save to Cloud</h2>
         <p>Select a provider (this is a stub you can swap for the real thing):</p>
-        <ul className="picker">
-          {providers.map(p => (
-            <li key={p.id}>
-              <button className="btn" onClick={() => onChoose?.(p.id)}>{p.name}</button>
-            </li>
-          ))}
-        </ul>
-        <div className="modal__actions">
-          <button className="btn btn--ghost" onClick={onClose}>Close</button>
-        </div>
+            <ul className="picker">
+              {providers.map(p => (
+                <li key={p.id}>
+                  <button className="btn is-interactive" onClick={() => onChoose?.(p.id)}>{p.name}</button>
+                </li>
+              ))}
+            </ul>
+            <div className="modal__actions">
+              <button className="btn btn--ghost is-interactive" onClick={onClose}>Close</button>
+            </div>
       </div>
     </div>
   );

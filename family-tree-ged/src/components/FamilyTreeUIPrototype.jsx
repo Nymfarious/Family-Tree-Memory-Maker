@@ -5,25 +5,25 @@ function PersonCard({ pid, people, childToParents, onFocus }) {
   const p = people[pid];
   if (!p) return null;
   const parents = childToParents[pid] || [];
-  return (
-    <div className="person" tabIndex={0} onClick={() => onFocus?.(pid)}>
-      <div className="person__name">{p.name || pid}</div>
-      <div className="person__meta">
-        <span className="badge">{p.sex || "?"}</span>
-        {p.surname ? <span className="badge badge--muted">{p.surname}</span> : null}
-      </div>
-      {parents.length > 0 && (
-        <div className="person__parents">
-          Parents:{" "}
-          {parents.map((pp, idx) => (
-            <button key={pp} className="link" onClick={(e) => { e.stopPropagation(); onFocus?.(pp); }}>
-              {people[pp]?.name || pp}{idx < parents.length - 1 ? ", " : ""}
-            </button>
-          ))}
+      return (
+        <div className="person is-interactive" tabIndex={0} onClick={() => onFocus?.(pid)}>
+          <div className="person__name">{p.name || pid}</div>
+          <div className="person__meta">
+            <span className="badge">{p.sex || "?"}</span>
+            {p.surname ? <span className="badge badge--muted">{p.surname}</span> : null}
+          </div>
+          {parents.length > 0 && (
+            <div className="person__parents">
+              Parents:{" "}
+              {parents.map((pp, idx) => (
+                <button key={pp} className="link is-interactive" onClick={(e) => { e.stopPropagation(); onFocus?.(pp); }}>
+                  {people[pp]?.name || pp}{idx < parents.length - 1 ? ", " : ""}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-    </div>
-  );
+      );
 }
 
 function TreeList({ roots, people, childToParents, families, onFocus }) {
@@ -111,15 +111,19 @@ window.FamilyTreeUIPrototype = function FamilyTreeUIPrototype() {
     <div className="wrap">
       <header className="topbar">
         <h1>Family Tree GED — Prototype</h1>
-        <div className="actions">
-          <label className="btn">
-            <input ref={inputRef} type="file" accept=".ged,text/plain" onChange={onFile} hidden />
-            Import GEDCOM
-          </label>
-          <button className="btn" onClick={onSaveLocal}>Save Local</button>
-          <button className="btn" onClick={() => setCloudOpen(true)}>Save to Cloud…</button>
-          <button className="btn btn--ghost" onClick={() => setDrawerOpen(true)}>Change Log</button>
-        </div>
+            <div className="actions">
+              <label className="btn is-interactive" tabIndex="0">
+                <input ref={inputRef} type="file" accept=".ged,text/plain" onChange={onFile} hidden />
+                Import GEDCOM
+              </label>
+              <button className="btn has-lights is-interactive" data-stage="0" onClick={onSaveLocal} data-ix="save:click">
+                <span className="btn__label">Save Local</span>
+                <span className="btn__lights" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                <span className="sr-only" data-stage-live>Idle</span>
+              </button>
+              <button className="btn is-interactive" onClick={() => setCloudOpen(true)}>Save to Cloud…</button>
+              <button className="btn btn--ghost is-interactive" onClick={() => setDrawerOpen(true)} data-ix="changelog:open">Change Log</button>
+            </div>
       </header>
 
       <main className="grid">
@@ -145,7 +149,7 @@ window.FamilyTreeUIPrototype = function FamilyTreeUIPrototype() {
           {!ged && (
             <div className="empty">
               <p>Import a <code>.ged</code> file to begin. A tiny sample is in <code>/public/sample.ged</code>.</p>
-              <button className="btn" onClick={() => inputRef.current?.click()}>Choose File…</button>
+              <button className="btn is-interactive" onClick={() => inputRef.current?.click()}>Choose File…</button>
             </div>
           )}
         </section>
@@ -158,7 +162,7 @@ window.FamilyTreeUIPrototype = function FamilyTreeUIPrototype() {
                 <div className="focus">
                   <span>Focus: </span>
                   <strong>{ged.people[focus]?.name || focus}</strong>
-                  <button className="btn btn--ghost" onClick={() => setFocus(null)}>Clear</button>
+                  <button className="btn btn--ghost is-interactive" onClick={() => setFocus(null)}>Clear</button>
                 </div>
               )}
               <TreeList

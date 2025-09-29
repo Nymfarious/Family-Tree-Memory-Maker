@@ -2,10 +2,10 @@
 window.ChangeLogDrawer = function ChangeLogDrawer({ open, onClose, entries }) {
   return (
     <aside className={`drawer ${open ? "drawer--open" : ""}`} aria-hidden={!open}>
-      <div className="drawer__header">
-        <h3>Change Log</h3>
-        <button className="btn btn--ghost" onClick={onClose}>Close</button>
-      </div>
+          <div className="drawer__header">
+            <h3>Change Log</h3>
+            <button className="btn btn--ghost is-interactive" onClick={onClose}>Close</button>
+          </div>
       <ol className="changelog">
         {(entries ?? []).map((e, i) => (
           <li key={i}>
