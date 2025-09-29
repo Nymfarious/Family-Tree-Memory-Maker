@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Family Tree GED — Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="./src/styles.css" rel="stylesheet" />
+  <!-- React (CDN) + Babel for JSX-in-browser (no build step) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Load utility scripts -->
+  <script type="text/babel" src="./src/utils/storage.js" data-presets="env"></script>
+  
+  <!-- Load component scripts -->
+  <script type="text/babel" src="./src/components/GedcomParser.js" data-presets="env"></script>
+  <script type="text/babel" src="./src/components/IconDevNote.jsx" data-presets="env,react"></script>
+  <script type="text/babel" src="./src/components/CloudPickerModal.jsx" data-presets="env,react"></script>
+  <script type="text/babel" src="./src/components/ChangeLogDrawer.jsx" data-presets="env,react"></script>
+  <script type="text/babel" src="./src/components/FamilyTreeUIPrototype.jsx" data-presets="env,react"></script>
+  
+  <!-- Load main App -->
+  <script type="text/babel" src="./src/App.jsx" data-presets="env,react"></script>
+</body>
+</html>
