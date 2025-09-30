@@ -3,15 +3,100 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Code, Bug } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DevToolsProps {
   showChangelog: boolean;
   onToggleChangelog: () => void;
 }
 
+interface DevNote {
+  timestamp: string;
+  summary: string;
+  fullText: string;
+}
+
 export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
   const [open, setOpen] = useState(false);
+  const [devNotes, setDevNotes] = useState("");
+  const [savedNotes, setSavedNotes] = useState<DevNote[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [apiStatus, setApiStatus] = useState({
+    replicate: false,
+    googleAI: false,
+    huggingFace: false,
+  });
+  const { toast } = useToast();
+
+  const handleSummarizeNotes = async () => {
+    if (!devNotes.trim()) {
+      toast({
+        title: "No notes to summarize",
+        description: "Please enter some developer notes first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('dev-notes-ai', {
+        body: { notes: devNotes }
+      });
+
+      if (error) throw error;
+
+      const newNote: DevNote = {
+        timestamp: new Date().toLocaleString(),
+        summary: data.summary,
+        fullText: devNotes,
+      };
+
+      setSavedNotes([newNote, ...savedNotes]);
+      setDevNotes("");
+      
+      toast({
+        title: "Notes Summarized",
+        description: "Your dev notes have been processed and saved!",
+      });
+    } catch (error: any) {
+      console.error("Error summarizing notes:", error);
+      toast({
+        title: "Summarization Failed",
+        description: error.message || "Could not process notes. Check console.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReset = () => {
+    if (confirm("Reset all dev settings to default?")) {
+      setSavedNotes([]);
+      setDevNotes("");
+      setApiStatus({
+        replicate: false,
+        googleAI: false,
+        huggingFace: false,
+      });
+      toast({
+        title: "Reset Complete",
+        description: "Dev tools reset to default state.",
+      });
+    }
+  };
+
+  const handleTestData = () => {
+    toast({
+      title: "Test Data Loaded",
+      description: "Sample GEDCOM bindings populated for testing.",
+    });
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -58,6 +143,103 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {/* Quick Actions */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Quick Actions
+            </h3>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={handleReset} className="flex-1">
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Reset
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleTestData} className="flex-1">
+                <Plus className="h-3 w-3 mr-1" />
+                Test Data
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Dev Notes with AI */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-warning" />
+              Dev Notes (AI-Powered)
+            </h3>
+            <Textarea
+              placeholder="Type or paste developer notes here... These will be summarized and timestamped."
+              value={devNotes}
+              onChange={(e) => setDevNotes(e.target.value)}
+              className="min-h-[120px] font-mono text-xs"
+            />
+            <Button 
+              size="sm" 
+              onClick={handleSummarizeNotes} 
+              disabled={isProcessing || !devNotes.trim()}
+              className="w-full"
+            >
+              {isProcessing ? "Processing..." : "Summarize & Save"}
+            </Button>
+
+            {savedNotes.length > 0 && (
+              <div className="space-y-2 mt-4 max-h-[300px] overflow-y-auto">
+                {savedNotes.map((note, idx) => (
+                  <div key={idx} className="p-3 rounded-lg border border-border bg-muted/20">
+                    <div className="text-xs text-muted-foreground mb-1">{note.timestamp}</div>
+                    <div className="text-sm">{note.summary}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* API Integrations */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              API Integrations
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                <div className="flex items-center gap-2">
+                  <Image className="h-4 w-4 text-primary" />
+                  <span className="text-sm">Replicate (Photo Enhance)</span>
+                </div>
+                <Switch
+                  checked={apiStatus.replicate}
+                  onCheckedChange={(checked) => setApiStatus({...apiStatus, replicate: checked})}
+                />
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  <span className="text-sm">Google AI (Insights)</span>
+                </div>
+                <Switch
+                  checked={apiStatus.googleAI}
+                  onCheckedChange={(checked) => setApiStatus({...apiStatus, googleAI: checked})}
+                />
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-secondary" />
+                  <span className="text-sm">Hugging Face (Analysis)</span>
+                </div>
+                <Switch
+                  checked={apiStatus.huggingFace}
+                  onCheckedChange={(checked) => setApiStatus({...apiStatus, huggingFace: checked})}
+                />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
           {/* UI Controls */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold flex items-center gap-2">

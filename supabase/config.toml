@@ -1,1 +1,13 @@
 project_id = "tcxbhxzcvmwoowusbptb"
+
+[functions.replicate-enhance]
+verify_jwt = false
+
+[functions.google-ai-insights]
+verify_jwt = false
+
+[functions.huggingface-analyze]
+verify_jwt = false
+
+[functions.dev-notes-ai]
+verify_jwt = false
