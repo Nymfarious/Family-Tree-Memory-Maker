@@ -142,6 +142,11 @@ export function FamilyTreeApp() {
         onToggleChangelog={() => setShowChangelog(!showChangelog)}
         showRoadmap={showRoadmap}
         onToggleRoadmap={() => setShowRoadmap(!showRoadmap)}
+        onResetTreeData={() => {
+          setGed(null);
+          setFocus(null);
+          StorageUtils.saveLocal("ft:ged-last", null);
+        }}
       />
 
       {/* Header */}

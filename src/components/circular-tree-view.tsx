@@ -1,7 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { PersonCard } from "./person-card";
 import type { Person, Family } from "@/types/gedcom";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface CircularTreeViewProps {
   rootPerson: string;
@@ -25,6 +29,9 @@ export function CircularTreeView({
   families,
   onFocus
 }: CircularTreeViewProps) {
+  const [selectedPerson, setSelectedPerson] = useState<string>(rootPerson);
+  const [lineageFilter, setLineageFilter] = useState<'both' | 'maternal' | 'paternal'>('both');
+
   const positions = useMemo(() => {
     const result: PersonPosition[] = [];
     const visited = new Set<string>();
@@ -35,19 +42,44 @@ export function CircularTreeView({
       visited.add(pid);
 
       const parents = childToParents[pid] || [];
+      
+      // Filter parents based on lineage selection
+      let filteredParents = parents;
+      if (lineageFilter !== 'both' && parents.length === 2) {
+        const person = people[pid];
+        if (person) {
+          // Get the family to determine which parent is which
+          const familyId = Object.keys(families).find(fid => {
+            const fam = families[fid];
+            return fam.children?.includes(pid);
+          });
+          
+          if (familyId) {
+            const family = families[familyId];
+            const fatherId = family.husb;
+            const motherId = family.wife;
+            
+            if (lineageFilter === 'paternal') {
+              filteredParents = fatherId ? [fatherId] : [];
+            } else if (lineageFilter === 'maternal') {
+              filteredParents = motherId ? [motherId] : [];
+            }
+          }
+        }
+      }
+      
       const angleRange = endAngle - startAngle;
-      const anglePerParent = parents.length > 0 ? angleRange / parents.length : 0;
+      const anglePerParent = filteredParents.length > 0 ? angleRange / filteredParents.length : 0;
 
-      parents.forEach((parentId, idx) => {
+      filteredParents.forEach((parentId, idx) => {
         const parentStartAngle = startAngle + (anglePerParent * idx);
         const parentEndAngle = parentStartAngle + anglePerParent;
-        const parentAngle = (parentStartAngle + parentEndAngle) / 2;
 
         result.push({
           pid: parentId,
           generation: generation + 1,
           index: idx,
-          total: parents.length
+          total: filteredParents.length
         });
 
         // Recursively add grandparents
@@ -55,19 +87,19 @@ export function CircularTreeView({
       });
     }
 
-    // Start with root person at center (generation 0)
+    // Start with selected person at center (generation 0)
     result.push({
-      pid: rootPerson,
+      pid: selectedPerson,
       generation: 0,
       index: 0,
       total: 1
     });
 
     // Add ancestors in a semi-circle (180 degrees)
-    addAncestors(rootPerson, 0, -90, 90);
+    addAncestors(selectedPerson, 0, -90, 90);
 
     return result;
-  }, [rootPerson, childToParents]);
+  }, [selectedPerson, childToParents, lineageFilter, people, families]);
 
   const getPositionStyle = (pos: PersonPosition) => {
     const { generation, index, total } = pos;
@@ -106,8 +138,56 @@ export function CircularTreeView({
     };
   };
 
+  // Get list of all people for selector
+  const peopleList = Object.entries(people)
+    .map(([pid, person]) => ({ pid, name: person.name || 'Unknown' }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   return (
-    <div className="relative w-full h-[800px] bg-gradient-to-br from-background via-card to-background rounded-lg border border-border overflow-hidden">
+    <div className="space-y-4">
+      {/* Controls */}
+      <div className="flex flex-col gap-4 p-4 rounded-lg border border-border bg-card/50">
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Person Selector */}
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="person-select" className="text-sm font-medium">Center Person</Label>
+            <Select value={selectedPerson} onValueChange={setSelectedPerson}>
+              <SelectTrigger id="person-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {peopleList.map(({ pid, name }) => (
+                  <SelectItem key={pid} value={pid}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Lineage Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Show Lineage</Label>
+            <RadioGroup value={lineageFilter} onValueChange={(value) => setLineageFilter(value as 'both' | 'maternal' | 'paternal')} className="flex gap-4">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="both" id="both" />
+                <Label htmlFor="both" className="font-normal cursor-pointer">Both</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="maternal" id="maternal" />
+                <Label htmlFor="maternal" className="font-normal cursor-pointer">Maternal</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="paternal" id="paternal" />
+                <Label htmlFor="paternal" className="font-normal cursor-pointer">Paternal</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+      </div>
+
+      {/* Tree Visualization */}
+      <div className="relative w-full h-[800px] bg-gradient-to-br from-background via-card to-background rounded-lg border border-border overflow-hidden">
       {/* Connection lines */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
         {positions.map(pos => {
@@ -165,6 +245,7 @@ export function CircularTreeView({
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }

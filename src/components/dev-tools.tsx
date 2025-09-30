@@ -14,6 +14,7 @@ interface DevToolsProps {
   onToggleChangelog: () => void;
   showRoadmap: boolean;
   onToggleRoadmap: () => void;
+  onResetTreeData?: () => void;
 }
 
 interface DevNote {
@@ -22,7 +23,7 @@ interface DevNote {
   fullText: string;
 }
 
-export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onToggleRoadmap }: DevToolsProps) {
+export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onToggleRoadmap, onResetTreeData }: DevToolsProps) {
   const [open, setOpen] = useState(false);
   const [devNotes, setDevNotes] = useState("");
   const [savedNotes, setSavedNotes] = useState<DevNote[]>([]);
@@ -118,7 +119,7 @@ export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onTogg
   };
 
   const handleReset = () => {
-    const confirmed = window.confirm("Are you sure you want to reset all dev settings to default? This action cannot be undone.");
+    const confirmed = window.confirm("Are you sure you want to reset all dev settings and clear the family tree? This action cannot be undone.");
     if (confirmed) {
       setSavedNotes([]);
       setDevNotes("");
@@ -128,9 +129,10 @@ export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onTogg
         huggingFace: 'not-configured',
         lovableAI: 'configured',
       });
+      onResetTreeData?.();
       toast({
         title: "Reset Complete",
-        description: "Dev tools reset to default state.",
+        description: "Dev tools and family tree data cleared.",
       });
     }
   };

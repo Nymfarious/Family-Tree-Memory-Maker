@@ -22,11 +22,13 @@ const tasks: Task[] = [
   { title: "RSG indicators in Roadmap", status: "done", priority: "low" },
   { title: "Dev Tools reset confirmation", status: "done", priority: "low" },
   { title: "Dev Tools save/close buttons", status: "done", priority: "low" },
+  { title: "Reset clears GEDCOM tree data", status: "done", priority: "high" },
+  { title: "Circular View - Person selector", status: "done", priority: "high" },
+  { title: "Circular View - Lineage filtering (maternal/paternal/both)", status: "done", priority: "high" },
   { title: "Replicate API integration", status: "in-progress", priority: "high" },
   { title: "Google AI integration", status: "in-progress", priority: "high" },
   { title: "Hugging Face integration", status: "in-progress", priority: "medium" },
   { title: "Ancestry.com proprietary format support", status: "todo", priority: "low" },
-  { title: "Enhanced circular tree visualization", status: "todo", priority: "medium" },
   { title: "Export to PDF/Image", status: "todo", priority: "low" },
 ];
 
