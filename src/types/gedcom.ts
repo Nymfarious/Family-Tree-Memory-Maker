@@ -1,17 +1,19 @@
 export interface Person {
-  id: string;
+  id: string; // Stable UUID
+  gedcomId?: string; // Original GEDCOM xref for reference
   name?: string;
   surname?: string;
   sex?: string;
-  famc?: string; // family as child
-  fams?: string[]; // families as spouse
+  famc?: string; // family as child (UUID)
+  fams?: string[]; // families as spouse (UUIDs)
 }
 
 export interface Family {
-  id: string;
-  husb?: string; // husband ID
-  wife?: string; // wife ID
-  children?: string[];
+  id: string; // Stable UUID
+  gedcomId?: string; // Original GEDCOM xref for reference
+  husb?: string; // husband UUID
+  wife?: string; // wife UUID
+  children?: string[]; // children UUIDs
 }
 
 export interface GedcomData {

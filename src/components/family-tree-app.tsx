@@ -3,15 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { DevNote } from "@/components/ui/dev-note";
 import { CloudPickerModal } from "@/components/modals/cloud-picker-modal";
 import { ChangeLogDrawer } from "@/components/drawers/changelog-drawer";
 import { TreeList } from "@/components/tree-list";
+import { CircularTreeView } from "@/components/circular-tree-view";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle } from "lucide-react";
 
 export function FamilyTreeApp() {
   const [ged, setGed] = useState<GedcomData | null>(() => 
@@ -174,9 +176,9 @@ export function FamilyTreeApp() {
                 </div>
 
                 <DevNote
-                  type="question"
-                  title="Dev note: What's our canonical ID?"
-                  note="Using GEDCOM xrefs (@I1@, @F1@) as IDs. If you want stable UUIDs, we can generate and map them."
+                  type="idea"
+                  title="✓ Stable UUIDs Implemented"
+                  note="Each person now has a stable UUID generated from their GEDCOM ID. This allows you to attach photos, stories, and AI summaries to specific people."
                 />
                 
                 <DevNote
@@ -210,7 +212,7 @@ export function FamilyTreeApp() {
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Family Tree
+                    Family Tree Views
                   </div>
                   {focus && (
                     <div className="flex items-center gap-2">
@@ -227,13 +229,46 @@ export function FamilyTreeApp() {
               </CardHeader>
               <CardContent>
                 {ged ? (
-                  <TreeList
-                    roots={focus ? [focus] : ged.roots}
-                    people={ged.people}
-                    childToParents={ged.childToParents}
-                    families={ged.families}
-                    onFocus={setFocus}
-                  />
+                  <Tabs defaultValue="list" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsTrigger value="list" className="flex items-center gap-2">
+                        <TreePine className="h-4 w-4" />
+                        List View
+                      </TabsTrigger>
+                      <TabsTrigger value="circular" className="flex items-center gap-2">
+                        <Circle className="h-4 w-4" />
+                        Circular View
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="list" className="mt-0">
+                      <TreeList
+                        roots={focus ? [focus] : ged.roots}
+                        people={ged.people}
+                        childToParents={ged.childToParents}
+                        families={ged.families}
+                        onFocus={setFocus}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="circular" className="mt-0">
+                      <div className="space-y-4">
+                        <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border">
+                          <p className="flex items-center gap-2">
+                            <Circle className="h-4 w-4" />
+                            Semi-circular ancestor view with focused person at center. Click any person to refocus.
+                          </p>
+                        </div>
+                        <CircularTreeView
+                          rootPerson={focus || ged.roots[0]}
+                          people={ged.people}
+                          childToParents={ged.childToParents}
+                          families={ged.families}
+                          onFocus={setFocus}
+                        />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <TreePine className="h-16 w-16 mx-auto mb-4 opacity-50" />

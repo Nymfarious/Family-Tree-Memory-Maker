@@ -1,9 +1,26 @@
 import type { GedcomData, Person, Family } from '@/types/gedcom';
 
+// Generate stable UUID from GEDCOM xref
+function generateUUID(xref: string): string {
+  // Create a deterministic UUID based on the xref
+  // This ensures the same xref always gets the same UUID
+  let hash = 0;
+  for (let i = 0; i < xref.length; i++) {
+    const char = xref.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Format as UUID v4 style
+  const hex = Math.abs(hash).toString(16).padStart(8, '0');
+  return `${hex.slice(0, 8)}-${hex.slice(0, 4)}-4${hex.slice(0, 3)}-${hex.slice(0, 4)}-${hex.slice(0, 12)}`;
+}
+
 export function parseGedcom(text: string): GedcomData {
   const lines = text.split(/\r?\n/);
   const people: Record<string, Person> = {};
   const families: Record<string, Family> = {};
+  const xrefToUUID: Record<string, string> = {};
 
   let current: Person | Family | null = null;
   let currentType: 'INDI' | 'FAM' | null = null;
@@ -23,10 +40,12 @@ export function parseGedcom(text: string): GedcomData {
 
     if (level === 0 && xref) {
       if (tag === "INDI") {
-        current = people[xref] = people[xref] || { id: xref };
+        const uuid = xrefToUUID[xref] || (xrefToUUID[xref] = generateUUID(xref));
+        current = people[uuid] = people[uuid] || { id: uuid, gedcomId: xref };
         currentType = "INDI";
       } else if (tag === "FAM") {
-        current = families[xref] = families[xref] || { id: xref };
+        const uuid = xrefToUUID[xref] || (xrefToUUID[xref] = generateUUID(xref));
+        current = families[uuid] = families[uuid] || { id: uuid, gedcomId: xref };
         currentType = "FAM";
       } else {
         current = null;
@@ -47,20 +66,25 @@ export function parseGedcom(text: string): GedcomData {
       } else if (tag === "SEX") {
         person.sex = rest;
       } else if (tag === "FAMC") {
-        person.famc = rest; // child in family
+        const famUUID = xrefToUUID[rest] || (xrefToUUID[rest] = generateUUID(rest));
+        person.famc = famUUID;
       } else if (tag === "FAMS") {
         person.fams = person.fams || [];
-        person.fams.push(rest); // spouse in family
+        const famUUID = xrefToUUID[rest] || (xrefToUUID[rest] = generateUUID(rest));
+        person.fams.push(famUUID);
       }
     } else if (currentType === "FAM") {
       const family = current as Family;
       if (tag === "HUSB") {
-        family.husb = rest;
+        const husbUUID = xrefToUUID[rest] || (xrefToUUID[rest] = generateUUID(rest));
+        family.husb = husbUUID;
       } else if (tag === "WIFE") {
-        family.wife = rest;
+        const wifeUUID = xrefToUUID[rest] || (xrefToUUID[rest] = generateUUID(rest));
+        family.wife = wifeUUID;
       } else if (tag === "CHIL") {
         family.children = family.children || [];
-        family.children.push(rest);
+        const childUUID = xrefToUUID[rest] || (xrefToUUID[rest] = generateUUID(rest));
+        family.children.push(childUUID);
       }
     }
   }
