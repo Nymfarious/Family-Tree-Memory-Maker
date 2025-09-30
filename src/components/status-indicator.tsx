@@ -42,13 +42,35 @@ export function StatusIndicator({ status, size = "sm", showLabel = false, classN
     lg: "h-4 w-4",
   };
 
+  const ringSize = size === 'sm' ? 'ring-[0.5px]' : size === 'md' ? 'ring-1' : 'ring-2';
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="flex items-center gap-1">
-        <div className={cn("rounded-full", sizeClasses[size], getStatusColor("not-configured"))} />
-        <div className={cn("rounded-full", sizeClasses[size], getStatusColor("configured"))} />
-        <div className={cn("rounded-full", sizeClasses[size], getStatusColor("tested"))} />
-        <div className={cn("rounded-full", sizeClasses[size], getStatusColor("working"))} />
+      <div className="flex items-center gap-0.5">
+        <div className={cn(
+          "rounded-full", 
+          sizeClasses[size], 
+          getStatusColor("not-configured"),
+          status === "not-configured" ? `${ringSize} ring-offset-1 ring-offset-background ring-destructive` : "opacity-30"
+        )} />
+        <div className={cn(
+          "rounded-full", 
+          sizeClasses[size], 
+          getStatusColor("configured"),
+          status === "configured" ? `${ringSize} ring-offset-1 ring-offset-background ring-warning` : "opacity-30"
+        )} />
+        <div className={cn(
+          "rounded-full", 
+          sizeClasses[size], 
+          getStatusColor("tested"),
+          status === "tested" ? `${ringSize} ring-offset-1 ring-offset-background ring-yellow-500` : "opacity-30"
+        )} />
+        <div className={cn(
+          "rounded-full", 
+          sizeClasses[size], 
+          getStatusColor("working"),
+          status === "working" ? `${ringSize} ring-offset-1 ring-offset-background ring-green-500` : "opacity-30"
+        )} />
       </div>
       {showLabel && (
         <span className="text-xs text-muted-foreground">

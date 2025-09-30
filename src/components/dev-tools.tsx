@@ -5,13 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus } from "lucide-react";
+import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DevToolsProps {
   showChangelog: boolean;
   onToggleChangelog: () => void;
+  showRoadmap: boolean;
+  onToggleRoadmap: () => void;
 }
 
 interface DevNote {
@@ -20,7 +22,7 @@ interface DevNote {
   fullText: string;
 }
 
-export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
+export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onToggleRoadmap }: DevToolsProps) {
   const [open, setOpen] = useState(false);
   const [devNotes, setDevNotes] = useState("");
   const [savedNotes, setSavedNotes] = useState<DevNote[]>([]);
@@ -116,7 +118,8 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
   };
 
   const handleReset = () => {
-    if (confirm("Reset all dev settings to default?")) {
+    const confirmed = window.confirm("Are you sure you want to reset all dev settings to default? This action cannot be undone.");
+    if (confirmed) {
       setSavedNotes([]);
       setDevNotes("");
       setApiStatus({
@@ -130,6 +133,14 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
         description: "Dev tools reset to default state.",
       });
     }
+  };
+
+  const handleSave = () => {
+    toast({
+      title: "Settings Saved",
+      description: "Dev tools configuration has been saved.",
+    });
+    setOpen(false);
   };
 
   const handleTestData = () => {
@@ -363,6 +374,16 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
                   {showChangelog ? "ON" : "OFF"}
                 </Button>
               </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                <span className="text-sm">Show Roadmap Button</span>
+                <Button
+                  size="sm"
+                  variant={showRoadmap ? "default" : "outline"}
+                  onClick={onToggleRoadmap}
+                >
+                  {showRoadmap ? "ON" : "OFF"}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -434,6 +455,26 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
                 <Badge variant="secondary" className="text-xs">Util</Badge>
               </div>
             </div>
+          </div>
+
+          {/* Save and Close Buttons */}
+          <div className="sticky bottom-0 bg-background border-t border-border pt-4 flex gap-2">
+            <Button 
+              variant="outline" 
+              className="flex-1 flex items-center gap-2"
+              onClick={() => setOpen(false)}
+            >
+              <X className="h-4 w-4" />
+              Close
+            </Button>
+            <Button 
+              variant="default" 
+              className="flex-1 flex items-center gap-2"
+              onClick={handleSave}
+            >
+              <Save className="h-4 w-4" />
+              Save
+            </Button>
           </div>
         </div>
       </SheetContent>

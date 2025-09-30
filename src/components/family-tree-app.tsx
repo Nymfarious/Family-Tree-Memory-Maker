@@ -17,7 +17,7 @@ import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, ListTodo } from "lucide-react";
 
 export function FamilyTreeApp() {
   const [ged, setGed] = useState<GedcomData | null>(() => 
@@ -28,6 +28,7 @@ export function FamilyTreeApp() {
   const [importOpen, setImportOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(true);
+  const [showRoadmap, setShowRoadmap] = useState(false);
   const [focus, setFocus] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [maxGenerations, setMaxGenerations] = useState<number>(7);
@@ -137,8 +138,10 @@ export function FamilyTreeApp() {
     <div className="min-h-screen bg-background">
       {/* Dev Tools */}
       <DevTools 
-        showChangelog={showChangelog}
+        showChangelog={showChangelog} 
         onToggleChangelog={() => setShowChangelog(!showChangelog)}
+        showRoadmap={showRoadmap}
+        onToggleRoadmap={() => setShowRoadmap(!showRoadmap)}
       />
 
       {/* Header */}
@@ -182,6 +185,18 @@ export function FamilyTreeApp() {
                   Change Log
                 </Button>
               )}
+              {showRoadmap && (
+                <Button onClick={() => setShowRoadmap(false)} variant="ghost">
+                  <ListTodo className="mr-2 h-4 w-4" />
+                  Roadmap
+                </Button>
+              )}
+              {!showRoadmap && (
+                <Button onClick={() => setShowRoadmap(true)} variant="outline">
+                  <ListTodo className="mr-2 h-4 w-4" />
+                  Show Roadmap
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -190,9 +205,11 @@ export function FamilyTreeApp() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Task List */}
-        <div className="mb-8">
-          <TaskList />
-        </div>
+        {showRoadmap && (
+          <div className="mb-8">
+            <TaskList />
+          </div>
+        )}
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Overview Section */}

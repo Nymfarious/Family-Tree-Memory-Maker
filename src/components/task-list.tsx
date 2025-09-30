@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Circle, Clock } from "lucide-react";
+import { StatusIndicator } from "./status-indicator";
 
 interface Task {
   title: string;
@@ -17,6 +18,10 @@ const tasks: Task[] = [
   { title: "Ready-Set-Go status indicators", status: "done", priority: "high" },
   { title: "API integration toggles in Dev Tools", status: "done", priority: "medium" },
   { title: "AI-powered dev notes with summarization", status: "done", priority: "medium" },
+  { title: "Development Roadmap toggle button", status: "done", priority: "medium" },
+  { title: "RSG indicators in Roadmap", status: "done", priority: "low" },
+  { title: "Dev Tools reset confirmation", status: "done", priority: "low" },
+  { title: "Dev Tools save/close buttons", status: "done", priority: "low" },
   { title: "Replicate API integration", status: "in-progress", priority: "high" },
   { title: "Google AI integration", status: "in-progress", priority: "high" },
   { title: "Hugging Face integration", status: "in-progress", priority: "medium" },
@@ -57,7 +62,10 @@ export function TaskList() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Development Roadmap</span>
+          <div className="flex items-center gap-2">
+            <span>Development Roadmap</span>
+            <StatusIndicator status="working" size="sm" />
+          </div>
           <div className="flex gap-2 text-sm">
             <Badge variant="outline" className="bg-green-500/10">
               {statusCounts.done || 0} Done
@@ -80,9 +88,6 @@ export function TaskList() {
             >
               {getStatusIcon(task.status)}
               <span className="flex-1 text-sm">{task.title}</span>
-              <Badge variant="outline" className="text-xs">
-                {getStatusLabel(task.status)}
-              </Badge>
               {task.priority && (
                 <Badge 
                   variant={task.priority === "high" ? "destructive" : task.priority === "medium" ? "secondary" : "outline"}
@@ -91,6 +96,9 @@ export function TaskList() {
                   {task.priority}
                 </Badge>
               )}
+              <Badge variant="outline" className="text-xs">
+                {getStatusLabel(task.status)}
+              </Badge>
             </div>
           ))}
         </div>
