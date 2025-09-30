@@ -7,10 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { CloudPickerModal } from "@/components/modals/cloud-picker-modal";
 import { PreferencesModal } from "@/components/modals/preferences-modal";
+import { ImportGedcomModal } from "@/components/modals/import-gedcom-modal";
 import { ChangeLogDrawer } from "@/components/drawers/changelog-drawer";
 import { DevTools } from "@/components/dev-tools";
 import { TreeList } from "@/components/tree-list";
 import { CircularTreeView } from "@/components/circular-tree-view";
+import { TaskList } from "@/components/task-list";
+import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
@@ -22,9 +25,12 @@ export function FamilyTreeApp() {
   );
   const [cloudOpen, setCloudOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(true);
   const [focus, setFocus] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [maxGenerations, setMaxGenerations] = useState<number>(7);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -41,25 +47,33 @@ export function FamilyTreeApp() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = parseGedcom(String(reader.result || ""));
-        setGed(parsed);
-        StorageUtils.saveLocal("ft:ged-last", parsed);
-        toast({
-          title: "GEDCOM Imported Successfully",
-          description: `Loaded ${Object.keys(parsed.people).length} people and ${Object.keys(parsed.families).length} families.`,
-        });
-      } catch (error) {
-        toast({
-          title: "Import Failed",
-          description: "Could not parse the GEDCOM file. Please check the format.",
-          variant: "destructive",
-        });
-      }
-    };
-    reader.readAsText(file);
+    // Open the import modal for the new flow
+    setPendingFile(file);
+    setImportOpen(true);
+    
+    // Reset the input so the same file can be selected again
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
+
+  const onImportComplete = (content: string, filename: string, generations: number) => {
+    try {
+      const parsed = parseGedcom(content);
+      setGed(parsed);
+      setMaxGenerations(generations);
+      StorageUtils.saveLocal("ft:ged-last", parsed);
+      toast({
+        title: "GEDCOM Imported Successfully",
+        description: `Loaded ${Object.keys(parsed.people).length} people and ${Object.keys(parsed.families).length} families from "${filename}" (${generations} generations).`,
+      });
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: "Could not parse the GEDCOM file. Please check the format.",
+        variant: "destructive",
+      });
+    }
   };
 
   const onSaveLocal = () => {
@@ -135,6 +149,7 @@ export function FamilyTreeApp() {
               <TreePine className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold text-primary">Family Tree GED</h1>
               <Badge variant="outline" className="text-xs">Prototype</Badge>
+              <StatusIndicator status="working" size="sm" />
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -145,7 +160,7 @@ export function FamilyTreeApp() {
               <Input
                 ref={inputRef}
                 type="file"
-                accept=".ged,text/plain"
+                accept=".ged,.gedcom,.zip,.rar,.7z,application/x-gedcom,application/zip,application/x-zip-compressed,application/x-rar-compressed,application/x-7z-compressed"
                 onChange={onFile}
                 className="hidden"
               />
@@ -174,6 +189,11 @@ export function FamilyTreeApp() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Task List */}
+        <div className="mb-8">
+          <TaskList />
+        </div>
+
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Overview Section */}
           <div className="lg:col-span-1">
@@ -310,6 +330,15 @@ export function FamilyTreeApp() {
       <PreferencesModal 
         open={prefsOpen} 
         onClose={() => setPrefsOpen(false)} 
+      />
+      <ImportGedcomModal
+        open={importOpen}
+        onClose={() => {
+          setImportOpen(false);
+          setPendingFile(null);
+        }}
+        onImport={onImportComplete}
+        file={pendingFile}
       />
       <ChangeLogDrawer 
         open={drawerOpen} 

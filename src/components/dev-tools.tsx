@@ -254,11 +254,11 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
                     <span className="text-sm font-medium">Lovable AI (Dev Notes)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.lovableAI === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.lovableAI === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.lovableAI === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.lovableAI === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    <div className="flex gap-0.5">
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.lovableAI === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.lovableAI === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.lovableAI === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.lovableAI === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
                     </div>
                   </div>
                 </div>
@@ -278,11 +278,11 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
                     <span className="text-sm font-medium">Replicate (Photo Enhance)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.replicate === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.replicate === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.replicate === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.replicate === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    <div className="flex gap-0.5">
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.replicate === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.replicate === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.replicate === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.replicate === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
                     </div>
                   </div>
                 </div>
@@ -302,11 +302,11 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
                     <span className="text-sm font-medium">Google AI (Insights)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.googleAI === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.googleAI === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.googleAI === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.googleAI === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    <div className="flex gap-0.5">
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.googleAI === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.googleAI === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.googleAI === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.googleAI === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
                     </div>
                   </div>
                 </div>
@@ -326,11 +326,11 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
                     <span className="text-sm font-medium">Hugging Face (Analysis)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.huggingFace === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.huggingFace === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.huggingFace === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.huggingFace === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    <div className="flex gap-0.5">
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.huggingFace === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.huggingFace === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.huggingFace === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.huggingFace === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
                     </div>
                   </div>
                 </div>
