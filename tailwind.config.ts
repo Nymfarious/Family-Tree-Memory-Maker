@@ -60,6 +60,12 @@ export default {
           line: "hsl(var(--tree-line))",
           "line-focus": "hsl(var(--tree-line-focus))",
         },
+        yellow: {
+          500: "hsl(var(--status-yellow))",
+        },
+        green: {
+          500: "hsl(var(--status-green))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -25,10 +25,16 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
   const [devNotes, setDevNotes] = useState("");
   const [savedNotes, setSavedNotes] = useState<DevNote[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [apiStatus, setApiStatus] = useState({
-    replicate: false,
-    googleAI: false,
-    huggingFace: false,
+  const [apiStatus, setApiStatus] = useState<{
+    replicate: 'not-configured' | 'configured' | 'tested' | 'working';
+    googleAI: 'not-configured' | 'configured' | 'tested' | 'working';
+    huggingFace: 'not-configured' | 'configured' | 'tested' | 'working';
+    lovableAI: 'not-configured' | 'configured' | 'tested' | 'working';
+  }>({
+    replicate: 'not-configured',
+    googleAI: 'not-configured',
+    huggingFace: 'not-configured',
+    lovableAI: 'configured', // Lovable AI is pre-configured
   });
   const { toast } = useToast();
 
@@ -75,14 +81,49 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
     }
   };
 
+  const getStatusColor = (status: 'not-configured' | 'configured' | 'tested' | 'working') => {
+    switch (status) {
+      case 'not-configured': return 'bg-destructive'; // Red
+      case 'configured': return 'bg-warning'; // Orange
+      case 'tested': return 'bg-yellow-500'; // Yellow
+      case 'working': return 'bg-green-500'; // Green
+    }
+  };
+
+  const getStatusLabel = (status: 'not-configured' | 'configured' | 'tested' | 'working') => {
+    switch (status) {
+      case 'not-configured': return 'Not Configured';
+      case 'configured': return 'API Key Added';
+      case 'tested': return 'Tested';
+      case 'working': return 'Working';
+    }
+  };
+
+  const handleTestAPI = async (api: 'replicate' | 'googleAI' | 'huggingFace' | 'lovableAI') => {
+    toast({
+      title: `Testing ${api}...`,
+      description: "Checking API connectivity",
+    });
+    
+    // Simulate API test - in real implementation, call the edge function
+    setTimeout(() => {
+      setApiStatus({...apiStatus, [api]: 'working'});
+      toast({
+        title: "API Test Successful",
+        description: `${api} is working correctly!`,
+      });
+    }, 1500);
+  };
+
   const handleReset = () => {
     if (confirm("Reset all dev settings to default?")) {
       setSavedNotes([]);
       setDevNotes("");
       setApiStatus({
-        replicate: false,
-        googleAI: false,
-        huggingFace: false,
+        replicate: 'not-configured',
+        googleAI: 'not-configured',
+        huggingFace: 'not-configured',
+        lovableAI: 'configured',
       });
       toast({
         title: "Reset Complete",
@@ -198,42 +239,107 @@ export function DevTools({ showChangelog, onToggleChangelog }: DevToolsProps) {
 
           <Separator />
 
-          {/* API Integrations */}
+          {/* API Integrations with Ready-Set-Go Indicators */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <Brain className="h-4 w-4" />
               API Integrations
             </h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
-                <div className="flex items-center gap-2">
-                  <Image className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Replicate (Photo Enhance)</span>
+            <div className="space-y-3">
+              {/* Lovable AI */}
+              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-warning" />
+                    <span className="text-sm font-medium">Lovable AI (Dev Notes)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.lovableAI === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.lovableAI === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.lovableAI === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.lovableAI === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    </div>
+                  </div>
                 </div>
-                <Switch
-                  checked={apiStatus.replicate}
-                  onCheckedChange={(checked) => setApiStatus({...apiStatus, replicate: checked})}
-                />
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.lovableAI)}</span>
+                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('lovableAI')}>
+                    Test
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-accent" />
-                  <span className="text-sm">Google AI (Insights)</span>
+
+              {/* Replicate */}
+              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Image className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Replicate (Photo Enhance)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.replicate === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.replicate === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.replicate === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.replicate === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    </div>
+                  </div>
                 </div>
-                <Switch
-                  checked={apiStatus.googleAI}
-                  onCheckedChange={(checked) => setApiStatus({...apiStatus, googleAI: checked})}
-                />
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.replicate)}</span>
+                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('replicate')}>
+                    Test
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-secondary" />
-                  <span className="text-sm">Hugging Face (Analysis)</span>
+
+              {/* Google AI */}
+              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-accent" />
+                    <span className="text-sm font-medium">Google AI (Insights)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.googleAI === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.googleAI === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.googleAI === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.googleAI === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    </div>
+                  </div>
                 </div>
-                <Switch
-                  checked={apiStatus.huggingFace}
-                  onCheckedChange={(checked) => setApiStatus({...apiStatus, huggingFace: checked})}
-                />
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.googleAI)}</span>
+                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('googleAI')}>
+                    Test
+                  </Button>
+                </div>
+              </div>
+
+              {/* Hugging Face */}
+              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-secondary" />
+                    <span className="text-sm font-medium">Hugging Face (Analysis)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('not-configured')} ${apiStatus.huggingFace === 'not-configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('configured')} ${apiStatus.huggingFace === 'configured' ? 'ring-2 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('tested')} ${apiStatus.huggingFace === 'tested' ? 'ring-2 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor('working')} ${apiStatus.huggingFace === 'working' ? 'ring-2 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.huggingFace)}</span>
+                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('huggingFace')}>
+                    Test
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

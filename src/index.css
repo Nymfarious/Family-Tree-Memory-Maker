@@ -18,6 +18,12 @@
     --accent-2: 158 65% 62%;
     --warn: 38 95% 55%;
     --danger: 0 72% 58%;
+    
+    /* Ready-Set-Go status colors */
+    --status-red: 0 72% 58%;      /* Not configured */
+    --status-orange: 38 95% 55%;  /* Configured */
+    --status-yellow: 45 93% 58%;  /* Tested */
+    --status-green: 158 65% 62%;  /* Working */
 
     /* Tailwind semantic token mappings */
     --background: 222 15% 7%;
