@@ -5,22 +5,25 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { DevNote } from "@/components/ui/dev-note";
 import { CloudPickerModal } from "@/components/modals/cloud-picker-modal";
+import { PreferencesModal } from "@/components/modals/preferences-modal";
 import { ChangeLogDrawer } from "@/components/drawers/changelog-drawer";
+import { DevTools } from "@/components/dev-tools";
 import { TreeList } from "@/components/tree-list";
 import { CircularTreeView } from "@/components/circular-tree-view";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings } from "lucide-react";
 
 export function FamilyTreeApp() {
   const [ged, setGed] = useState<GedcomData | null>(() => 
     StorageUtils.loadLocal<GedcomData>("ft:ged-last")
   );
   const [cloudOpen, setCloudOpen] = useState(false);
+  const [prefsOpen, setPrefsOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(true);
   const [focus, setFocus] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -69,11 +72,21 @@ export function FamilyTreeApp() {
       return;
     }
     
-    const success = StorageUtils.saveLocal("ft:ged-last", ged);
+    // Create downloadable file
+    const dataStr = JSON.stringify(ged, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `family-tree-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
     toast({
-      title: success ? "Saved Locally" : "Save Failed",
-      description: success ? "Your family tree has been saved to local storage." : "Could not save to local storage.",
-      variant: success ? "default" : "destructive",
+      title: "Downloaded",
+      description: "Your family tree has been saved to your Downloads folder.",
     });
   };
 
@@ -108,6 +121,12 @@ export function FamilyTreeApp() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Dev Tools */}
+      <DevTools 
+        showChangelog={showChangelog}
+        onToggleChangelog={() => setShowChangelog(!showChangelog)}
+      />
+
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
@@ -130,6 +149,10 @@ export function FamilyTreeApp() {
                 onChange={onFile}
                 className="hidden"
               />
+              <Button onClick={() => setPrefsOpen(true)} variant="outline">
+                <Settings className="mr-2 h-4 w-4" />
+                Preferences
+              </Button>
               <Button onClick={onSaveLocal} variant="outline">
                 <Save className="mr-2 h-4 w-4" />
                 Save Local
@@ -138,10 +161,12 @@ export function FamilyTreeApp() {
                 <Cloud className="mr-2 h-4 w-4" />
                 Save to Cloud…
               </Button>
-              <Button onClick={() => setDrawerOpen(true)} variant="ghost">
-                <History className="mr-2 h-4 w-4" />
-                Change Log
-              </Button>
+              {showChangelog && (
+                <Button onClick={() => setDrawerOpen(true)} variant="ghost">
+                  <History className="mr-2 h-4 w-4" />
+                  Change Log
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -174,18 +199,6 @@ export function FamilyTreeApp() {
                     <div className="text-sm text-muted-foreground">Roots</div>
                   </div>
                 </div>
-
-                <DevNote
-                  type="idea"
-                  title="✓ Stable UUIDs Implemented"
-                  note="Each person now has a stable UUID generated from their GEDCOM ID. This allows you to attach photos, stories, and AI summaries to specific people."
-                />
-                
-                <DevNote
-                  type="idea"
-                  title="Idea: Focus mode"
-                  note="When you click a person, filter the tree to their ancestors/descendants; add breadcrumbs to pop back."
-                />
 
                 {!ged && (
                   <div className="text-center space-y-4 p-6 border-2 border-dashed border-border rounded-lg">
@@ -293,6 +306,10 @@ export function FamilyTreeApp() {
         open={cloudOpen} 
         onClose={() => setCloudOpen(false)} 
         onChoose={onChooseCloud} 
+      />
+      <PreferencesModal 
+        open={prefsOpen} 
+        onClose={() => setPrefsOpen(false)} 
       />
       <ChangeLogDrawer 
         open={drawerOpen} 
