@@ -20,6 +20,7 @@ type LineageFilter = 'both' | 'maternal' | 'paternal';
 type SortOrder = 'asc' | 'desc';
 
 export function TreeList({ roots, people, childToParents, families, onFocus }: TreeListProps) {
+  const [showLineage, setShowLineage] = useState(true);
   const [lineageFilter, setLineageFilter] = useState<LineageFilter>('both');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [centerPerson, setCenterPerson] = useState<string>(roots[0] || '');
@@ -147,43 +148,55 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
           </div>
         </div>
 
-        {/* Lineage Filter */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Show Lineage</Label>
-          <RadioGroup value={lineageFilter} onValueChange={(value) => setLineageFilter(value as LineageFilter)} className="flex gap-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="both" id="list-both" />
-              <Label htmlFor="list-both" className="font-normal cursor-pointer">Both</Label>
+        {/* Show Lineage Toggle and Filter */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <Button
+            variant={showLineage ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowLineage(!showLineage)}
+          >
+            {showLineage ? "Hide" : "Show"} Lineage
+          </Button>
+
+          {showLineage && (
+            <div className="flex-1 space-y-2">
+              <Label className="text-sm font-medium">Filter</Label>
+              <RadioGroup value={lineageFilter} onValueChange={(value) => setLineageFilter(value as LineageFilter)} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="both" id="list-both" />
+                  <Label htmlFor="list-both" className="font-normal cursor-pointer">Both</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="maternal" id="list-maternal" />
+                  <Label htmlFor="list-maternal" className="font-normal cursor-pointer">Maternal</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="paternal" id="list-paternal" />
+                  <Label htmlFor="list-paternal" className="font-normal cursor-pointer">Paternal</Label>
+                </div>
+              </RadioGroup>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="maternal" id="list-maternal" />
-              <Label htmlFor="list-maternal" className="font-normal cursor-pointer">Maternal</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="paternal" id="list-paternal" />
-              <Label htmlFor="list-paternal" className="font-normal cursor-pointer">Paternal</Label>
-            </div>
-          </RadioGroup>
+          )}
         </div>
       </div>
 
       {/* Tree Display */}
-      {lineageFilter === 'both' ? (
-        <div className="space-y-6">
-          {/* Center Person Card - Pinned at Top */}
-          {centerPerson && (
-            <div className="flex justify-center">
-              <PersonCard 
-                pid={centerPerson} 
-                people={people} 
-                childToParents={childToParents} 
-                onFocus={onFocus}
-                showPin={true}
-                className="ring-2 ring-primary shadow-lg"
-              />
-            </div>
-          )}
+      {/* Always show center person card */}
+      {centerPerson && (
+        <div className="flex justify-center">
+          <PersonCard 
+            pid={centerPerson} 
+            people={people} 
+            childToParents={childToParents} 
+            onFocus={onFocus}
+            showPin={true}
+            className="ring-2 ring-primary shadow-lg"
+          />
+        </div>
+      )}
 
+      {showLineage && lineageFilter === 'both' && (
+        <div className="space-y-6">
           {/* Navigation Arrows for Expanded View */}
           {expandedSide && (
             <div className="flex justify-center gap-4">
@@ -289,7 +302,9 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
             </div>
           )}
         </div>
-      ) : lineageFilter === 'maternal' ? (
+      )}
+
+      {showLineage && lineageFilter === 'maternal' && (
         <ul className="space-y-4">
           {maternalLine.length > 0 ? (
             (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
@@ -297,7 +312,9 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
             <p className="text-muted-foreground">No maternal lineage data</p>
           )}
         </ul>
-      ) : (
+      )}
+
+      {showLineage && lineageFilter === 'paternal' && (
         <ul className="space-y-4">
           {paternalLine.length > 0 ? (
             (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))

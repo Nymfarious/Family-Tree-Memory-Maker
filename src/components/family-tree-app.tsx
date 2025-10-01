@@ -162,9 +162,10 @@ export function FamilyTreeApp() {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              <Button onClick={() => inputRef.current?.click()} variant="default">
+              <Button onClick={() => inputRef.current?.click()} variant="default" className="relative">
                 <Upload className="mr-2 h-4 w-4" />
                 Import GEDCOM
+                <StatusIndicator status="configured" size="sm" className="absolute -top-1 -right-1" />
               </Button>
               <Input
                 ref={inputRef}
@@ -173,17 +174,20 @@ export function FamilyTreeApp() {
                 onChange={onFile}
                 className="hidden"
               />
-              <Button onClick={() => setPrefsOpen(true)} variant="outline">
+              <Button onClick={() => setPrefsOpen(true)} variant="outline" className="relative">
                 <Settings className="mr-2 h-4 w-4" />
                 Preferences
+                <StatusIndicator status="tested" size="sm" className="absolute -top-1 -right-1" />
               </Button>
-              <Button onClick={onSaveLocal} variant="outline">
+              <Button onClick={onSaveLocal} variant="outline" className="relative">
                 <Save className="mr-2 h-4 w-4" />
                 Save Local
+                <StatusIndicator status="working" size="sm" className="absolute -top-1 -right-1" />
               </Button>
-              <Button onClick={() => setCloudOpen(true)} variant="outline">
+              <Button onClick={() => setCloudOpen(true)} variant="outline" className="relative">
                 <Cloud className="mr-2 h-4 w-4" />
                 Save to Cloud…
+                <StatusIndicator status="configured" size="sm" className="absolute -top-1 -right-1" />
               </Button>
               {showChangelog && (
                 <Button onClick={() => setDrawerOpen(true)} variant="ghost">
@@ -191,9 +195,10 @@ export function FamilyTreeApp() {
                   Change Log
                 </Button>
               )}
-              <Button onClick={() => setShowRoadmap(true)} variant="ghost">
+              <Button onClick={() => setShowRoadmap(true)} variant="ghost" className="relative">
                 <Globe className="mr-2 h-4 w-4" />
                 Roadmap
+                <StatusIndicator status="not-configured" size="sm" className="absolute -top-1 -right-1" />
               </Button>
             </div>
           </div>

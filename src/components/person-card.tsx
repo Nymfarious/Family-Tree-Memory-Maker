@@ -20,6 +20,7 @@ interface CardDisplayPreferences {
   showDeath: boolean;
   showNickname: boolean;
   showMaidenName: boolean;
+  showOccupation: boolean;
 }
 
 const DEFAULT_PREFERENCES: CardDisplayPreferences = {
@@ -27,6 +28,7 @@ const DEFAULT_PREFERENCES: CardDisplayPreferences = {
   showDeath: true,
   showNickname: false,
   showMaidenName: false,
+  showOccupation: true,
 };
 
 export function PersonCard({ pid, people, childToParents, onFocus, className, showPin = false }: PersonCardProps) {
@@ -141,7 +143,7 @@ export function PersonCard({ pid, people, childToParents, onFocus, className, sh
           )}
 
           {/* Occupation */}
-          {person.occupation && (
+          {preferences.showOccupation && person.occupation && (
             <div className="text-xs text-muted-foreground">
               <span className="font-medium">Occupation:</span> {person.occupation}
             </div>

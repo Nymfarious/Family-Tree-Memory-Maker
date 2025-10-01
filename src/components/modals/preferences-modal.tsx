@@ -15,6 +15,7 @@ interface CardDisplayPreferences {
   showDeath: boolean;
   showNickname: boolean;
   showMaidenName: boolean;
+  showOccupation: boolean;
 }
 
 const DEFAULT_PREFERENCES: CardDisplayPreferences = {
@@ -22,6 +23,7 @@ const DEFAULT_PREFERENCES: CardDisplayPreferences = {
   showDeath: true,
   showNickname: false,
   showMaidenName: false,
+  showOccupation: true,
 };
 
 export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
@@ -112,6 +114,14 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
                   onCheckedChange={(checked) => handlePreferenceChange('showMaidenName', checked as boolean)}
                 />
                 <Label htmlFor="show-maiden" className="font-normal cursor-pointer">Show Maiden Name (Maternal Only)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="show-occupation"
+                  checked={preferences.showOccupation}
+                  onCheckedChange={(checked) => handlePreferenceChange('showOccupation', checked as boolean)}
+                />
+                <Label htmlFor="show-occupation" className="font-normal cursor-pointer">Show Occupation</Label>
               </div>
             </div>
           </div>
