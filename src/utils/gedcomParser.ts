@@ -65,6 +65,22 @@ export function parseGedcom(text: string): GedcomData {
         person.surname = surnameMatch ? trimVal(surnameMatch[1]) : undefined;
       } else if (tag === "SEX") {
         person.sex = rest;
+      } else if (tag === "BIRT") {
+        // Birth event - look for DATE and PLAC in next lines
+        person.birth = person.birth || "";
+      } else if (tag === "DATE" && person.birth !== undefined) {
+        person.birth = rest;
+      } else if (tag === "PLAC" && person.birth !== undefined && !person.birthPlace) {
+        person.birthPlace = rest;
+      } else if (tag === "DEAT") {
+        // Death event - look for DATE and PLAC in next lines
+        person.death = person.death || "";
+      } else if (tag === "DATE" && person.death !== undefined && !person.birth?.includes(rest)) {
+        person.death = rest;
+      } else if (tag === "PLAC" && person.death !== undefined && !person.deathPlace) {
+        person.deathPlace = rest;
+      } else if (tag === "OCCU") {
+        person.occupation = rest;
       } else if (tag === "FAMC") {
         const famUUID = xrefToUUID[rest] || (xrefToUUID[rest] = generateUUID(rest));
         person.famc = famUUID;

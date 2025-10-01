@@ -40,7 +40,7 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
     return map;
   }, [families]);
 
-  // Get maternal and paternal lines
+  // Get maternal and paternal lines with generation tracking
   const { maternalLine, paternalLine } = useMemo(() => {
     const maternal: string[] = [];
     const paternal: string[] = [];
@@ -48,7 +48,6 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
     if (!centerPerson) return { maternalLine: maternal, paternalLine: paternal };
 
     // Find parents of center person
-    const parents = childToParents[centerPerson] || [];
     const familyId = Object.keys(families).find(fid => {
       const fam = families[fid];
       return fam.children?.includes(centerPerson);
@@ -60,25 +59,34 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
     const motherId = family.wife;
     const fatherId = family.husb;
 
-    // Build lineages recursively
-    const buildLineage = (personId: string, lineage: string[]) => {
+    // Build lineages by generation (ancestors first, then descendants)
+    const buildAncestorLineage = (personId: string, lineage: string[]) => {
       if (!personId) return;
       lineage.push(personId);
-      const kids = Array.from(childrenByParent[personId] || []);
-      kids.forEach(kid => buildLineage(kid, lineage));
+      
+      // Find this person's parents
+      const personFamilyId = Object.keys(families).find(fid => {
+        const fam = families[fid];
+        return fam.children?.includes(personId);
+      });
+      
+      if (personFamilyId) {
+        const parentFamily = families[personFamilyId];
+        const parents = childToParents[personId] || [];
+        // Add parents recursively (older generations first)
+        parents.forEach(parentId => buildAncestorLineage(parentId, lineage));
+      }
     };
 
-    if (motherId) buildLineage(motherId, maternal);
-    if (fatherId) buildLineage(fatherId, paternal);
+    if (motherId) buildAncestorLineage(motherId, maternal);
+    if (fatherId) buildAncestorLineage(fatherId, paternal);
 
     return { maternalLine: maternal, paternalLine: paternal };
-  }, [centerPerson, childToParents, families, childrenByParent]);
+  }, [centerPerson, childToParents, families]);
 
-  const renderSubtree = (pid: string, depth = 0): JSX.Element => {
-    const kids = Array.from(childrenByParent[pid] || []);
-    
+  const renderPerson = (pid: string): JSX.Element => {
     return (
-      <li key={`${pid}-${depth}`} className="relative">
+      <li key={pid} className="relative">
         <PersonCard 
           pid={pid} 
           people={people} 
@@ -86,14 +94,6 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
           onFocus={onFocus}
           className="mb-3"
         />
-        {kids.length > 0 && (
-          <ul className={cn(
-            "ml-6 mt-2 space-y-2 border-l-2 border-tree-line pl-4",
-            "relative before:absolute before:top-0 before:left-0 before:w-2 before:h-2 before:bg-tree-line before:rounded-full before:-translate-x-1"
-          )}>
-            {kids.map(kid => renderSubtree(kid, depth + 1))}
-          </ul>
-        )}
       </li>
     );
   };
@@ -186,7 +186,7 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
               </h3>
               <ul className="space-y-4">
                 {maternalLine.length > 0 ? (
-                  maternalLine.map(pid => renderSubtree(pid))
+                  (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
                 ) : (
                   <p className="text-muted-foreground text-sm">No maternal lineage data</p>
                 )}
@@ -201,7 +201,7 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
               </h3>
               <ul className="space-y-4">
                 {paternalLine.length > 0 ? (
-                  paternalLine.map(pid => renderSubtree(pid))
+                  (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))
                 ) : (
                   <p className="text-muted-foreground text-sm">No paternal lineage data</p>
                 )}
@@ -212,7 +212,7 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
       ) : lineageFilter === 'maternal' ? (
         <ul className="space-y-4">
           {maternalLine.length > 0 ? (
-            maternalLine.map(pid => renderSubtree(pid))
+            (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
           ) : (
             <p className="text-muted-foreground">No maternal lineage data</p>
           )}
@@ -220,7 +220,7 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
       ) : (
         <ul className="space-y-4">
           {paternalLine.length > 0 ? (
-            paternalLine.map(pid => renderSubtree(pid))
+            (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))
           ) : (
             <p className="text-muted-foreground">No paternal lineage data</p>
           )}

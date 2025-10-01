@@ -122,20 +122,43 @@ export function PersonCard({ pid, people, childToParents, onFocus, className, sh
             )}
           </div>
 
-          {/* Birth and Death Dates */}
-          {(preferences.showBirth || preferences.showDeath) && (person.birth || person.death) && (
-            <div className="text-xs text-muted-foreground space-y-0.5">
-              {preferences.showBirth && person.birth && (
+          {/* Birth and Death Information */}
+          {(preferences.showBirth || preferences.showDeath) && (person.birth || person.death || person.birthPlace || person.deathPlace) && (
+            <div className="text-xs text-muted-foreground space-y-1">
+              {preferences.showBirth && (person.birth || person.birthPlace) && (
                 <div>
                   <span className="font-medium">Born:</span> {person.birth}
+                  {person.birthPlace && <span className="block ml-11 text-[10px]">{person.birthPlace}</span>}
                 </div>
               )}
-              {preferences.showDeath && person.death && (
+              {preferences.showDeath && (person.death || person.deathPlace) && (
                 <div>
                   <span className="font-medium">Died:</span> {person.death}
+                  {person.deathPlace && <span className="block ml-11 text-[10px]">{person.deathPlace}</span>}
                 </div>
               )}
             </div>
+          )}
+
+          {/* Occupation */}
+          {person.occupation && (
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium">Occupation:</span> {person.occupation}
+            </div>
+          )}
+
+          {/* Second Wife Placeholder */}
+          {person.fams && person.fams.length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-xs w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              View Spouse 2
+            </Button>
           )}
 
           {/* Parents */}

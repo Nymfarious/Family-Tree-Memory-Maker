@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 
 interface PreferencesModalProps {
@@ -112,6 +113,17 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
                 />
                 <Label htmlFor="show-maiden" className="font-normal cursor-pointer">Show Maiden Name (Maternal Only)</Label>
               </div>
+            </div>
+          </div>
+
+          {/* Family Crest/Emblem Upload Placeholder */}
+          <div className="space-y-3">
+            <Label>Family Emblems</Label>
+            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+              <p className="text-sm text-muted-foreground mb-2">Upload family crest, flag, or tartan</p>
+              <Button variant="outline" size="sm" disabled>
+                Upload Image (Coming Soon)
+              </Button>
             </div>
           </div>
         </div>

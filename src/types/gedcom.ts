@@ -7,7 +7,10 @@ export interface Person {
   maidenName?: string;
   sex?: string;
   birth?: string;
+  birthPlace?: string;
   death?: string;
+  deathPlace?: string;
+  occupation?: string;
   famc?: string; // family as child (UUID)
   fams?: string[]; // families as spouse (UUIDs)
 }
