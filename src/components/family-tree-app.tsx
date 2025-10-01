@@ -17,7 +17,8 @@ import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, ListTodo } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function FamilyTreeApp() {
   const [ged, setGed] = useState<GedcomData | null>(() => 
@@ -190,18 +191,10 @@ export function FamilyTreeApp() {
                   Change Log
                 </Button>
               )}
-              {showRoadmap && (
-                <Button onClick={() => setShowRoadmap(false)} variant="ghost">
-                  <ListTodo className="mr-2 h-4 w-4" />
-                  Roadmap
-                </Button>
-              )}
-              {!showRoadmap && (
-                <Button onClick={() => setShowRoadmap(true)} variant="outline">
-                  <ListTodo className="mr-2 h-4 w-4" />
-                  Show Roadmap
-                </Button>
-              )}
+              <Button onClick={() => setShowRoadmap(true)} variant="ghost">
+                <Globe className="mr-2 h-4 w-4" />
+                Roadmap
+              </Button>
             </div>
           </div>
         </div>
@@ -209,21 +202,17 @@ export function FamilyTreeApp() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Task List */}
-        {showRoadmap && (
-          <div className="mb-8">
-            <TaskList />
-          </div>
-        )}
-
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Overview Section */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Overview
+                <CardTitle className="flex flex-col gap-2 items-start">
+                  <span className="text-lg font-semibold text-muted-foreground">Workspace</span>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Overview
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -264,11 +253,13 @@ export function FamilyTreeApp() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <TreePine className="h-5 w-5 text-primary" />
-                    Family Tree Views
-                  </div>
+                <CardTitle className="flex flex-col gap-3">
+                  <span className="text-lg font-semibold text-muted-foreground">Workspace</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TreePine className="h-5 w-5 text-primary" />
+                      Family Tree Views
+                    </div>
                   {focus && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">Focus:</span>
@@ -280,6 +271,7 @@ export function FamilyTreeApp() {
                       </Button>
                     </div>
                   )}
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -367,6 +359,19 @@ export function FamilyTreeApp() {
         onClose={() => setDrawerOpen(false)} 
         entries={changelog} 
       />
+      
+      {/* Roadmap Dialog */}
+      <Dialog open={showRoadmap} onOpenChange={setShowRoadmap}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary" />
+              Development Roadmap
+            </DialogTitle>
+          </DialogHeader>
+          <TaskList />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
