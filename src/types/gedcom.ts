@@ -3,7 +3,11 @@ export interface Person {
   gedcomId?: string; // Original GEDCOM xref for reference
   name?: string;
   surname?: string;
+  nickname?: string;
+  maidenName?: string;
   sex?: string;
+  birth?: string;
+  death?: string;
   famc?: string; // family as child (UUID)
   fams?: string[]; // families as spouse (UUIDs)
 }

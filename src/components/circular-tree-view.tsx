@@ -192,21 +192,26 @@ export function CircularTreeView({
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
         {positions.map(pos => {
           if (pos.generation === 0) return null;
-          const parents = childToParents[pos.pid] || [];
-          const child = positions.find(p => parents.includes(p.pid));
-          if (!child) return null;
+          
+          // Find the child of this person (the person one generation down)
+          const childPos = positions.find(p => {
+            const parentsOfChild = childToParents[p.pid] || [];
+            return parentsOfChild.includes(pos.pid);
+          });
+          
+          if (!childPos) return null;
 
-          const childStyle = getPositionStyle(pos);
-          const parentStyle = getPositionStyle(child);
+          const parentStyle = getPositionStyle(pos);
+          const childStyle = getPositionStyle(childPos);
 
-          const x1 = parseFloat(String(childStyle.left));
-          const y1 = parseFloat(String(childStyle.top));
-          const x2 = parseFloat(String(parentStyle.left));
-          const y2 = parseFloat(String(parentStyle.top));
+          const x1 = parseFloat(String(parentStyle.left));
+          const y1 = parseFloat(String(parentStyle.top));
+          const x2 = parseFloat(String(childStyle.left));
+          const y2 = parseFloat(String(childStyle.top));
 
           return (
             <line
-              key={`${pos.pid}-${child.pid}`}
+              key={`line-${pos.pid}-to-${childPos.pid}`}
               x1={`${x1}%`}
               y1={`${y1}%`}
               x2={`${x2}%`}
@@ -222,7 +227,7 @@ export function CircularTreeView({
       {/* Person cards */}
       {positions.map(pos => (
         <div
-          key={pos.pid}
+          key={`card-${pos.pid}-gen${pos.generation}-idx${pos.index}`}
           className="absolute transition-all duration-300"
           style={getPositionStyle(pos)}
         >
@@ -237,6 +242,7 @@ export function CircularTreeView({
               people={people}
               childToParents={childToParents}
               onFocus={onFocus}
+              showPin={true}
               className={cn(
                 "shadow-lg",
                 pos.generation === 0 && "ring-2 ring-primary"

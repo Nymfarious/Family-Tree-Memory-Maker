@@ -1,8 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Person } from "@/types/gedcom";
+import { useState, useEffect } from "react";
 
 interface PersonCardProps {
   pid: string;
@@ -10,10 +12,35 @@ interface PersonCardProps {
   childToParents: Record<string, string[]>;
   onFocus?: (pid: string) => void;
   className?: string;
+  showPin?: boolean;
 }
 
-export function PersonCard({ pid, people, childToParents, onFocus, className }: PersonCardProps) {
+interface CardDisplayPreferences {
+  showBirth: boolean;
+  showDeath: boolean;
+  showNickname: boolean;
+  showMaidenName: boolean;
+}
+
+const DEFAULT_PREFERENCES: CardDisplayPreferences = {
+  showBirth: true,
+  showDeath: true,
+  showNickname: false,
+  showMaidenName: false,
+};
+
+export function PersonCard({ pid, people, childToParents, onFocus, className, showPin = false }: PersonCardProps) {
   const person = people[pid];
+  const [isPinned, setIsPinned] = useState(false);
+  const [preferences, setPreferences] = useState<CardDisplayPreferences>(DEFAULT_PREFERENCES);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('card-display-preferences');
+    if (saved) {
+      setPreferences(JSON.parse(saved));
+    }
+  }, []);
+
   if (!person) return null;
 
   const parents = childToParents[pid] || [];
@@ -32,23 +59,54 @@ export function PersonCard({ pid, people, childToParents, onFocus, className }: 
     }
   };
 
+  // Check if person is maternal line (for maiden name display)
+  const isMaternalLine = parents.some(parentId => {
+    const parent = people[parentId];
+    return parent?.sex?.toLowerCase() === 'f' || parent?.sex?.toLowerCase() === 'female';
+  });
+
   return (
     <Card 
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-card group",
-        "border border-border bg-gradient-card",
+        "cursor-pointer transition-all duration-200 hover:shadow-lg group relative",
+        "border border-border bg-card",
+        isPinned && "ring-2 ring-primary",
         className
       )}
       tabIndex={0}
       onClick={() => onFocus?.(pid)}
     >
+      {showPin && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className={cn(
+            "absolute -top-2 -left-2 h-6 w-6 rounded-full z-10",
+            isPinned ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted hover:bg-muted/80"
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsPinned(!isPinned);
+          }}
+        >
+          <Pin className={cn("h-3 w-3", isPinned && "fill-current")} />
+        </Button>
+      )}
+
       <CardContent className="p-4">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
-            {person.name || pid}
-          </h3>
+        <div className="space-y-2.5">
+          {/* Name and Nickname */}
+          <div>
+            <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
+              {person.name || pid}
+            </h3>
+            {preferences.showNickname && person.nickname && (
+              <p className="text-xs text-muted-foreground italic">"{person.nickname}"</p>
+            )}
+          </div>
           
-          <div className="flex gap-2">
+          {/* Sex and Surname/Maiden Name */}
+          <div className="flex flex-wrap gap-2">
             <Badge className={getSexColor(sex)}>
               {person.sex || "?"}
             </Badge>
@@ -57,17 +115,39 @@ export function PersonCard({ pid, people, childToParents, onFocus, className }: 
                 {person.surname}
               </Badge>
             )}
+            {preferences.showMaidenName && person.maidenName && isMaternalLine && (
+              <Badge variant="outline" className="border-genealogy-female/50">
+                née {person.maidenName}
+              </Badge>
+            )}
           </div>
 
+          {/* Birth and Death Dates */}
+          {(preferences.showBirth || preferences.showDeath) && (person.birth || person.death) && (
+            <div className="text-xs text-muted-foreground space-y-0.5">
+              {preferences.showBirth && person.birth && (
+                <div>
+                  <span className="font-medium">Born:</span> {person.birth}
+                </div>
+              )}
+              {preferences.showDeath && person.death && (
+                <div>
+                  <span className="font-medium">Died:</span> {person.death}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Parents */}
           {parents.length > 0 && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground pt-1 border-t border-border/50">
               <span className="font-medium">Parents: </span>
               {parents.map((parentId, index) => (
                 <span key={parentId}>
                   <Button
                     variant="link"
                     size="sm"
-                    className="h-auto p-0 text-sm text-primary hover:text-primary/80"
+                    className="h-auto p-0 text-xs text-primary hover:text-primary/80"
                     onClick={(e) => {
                       e.stopPropagation();
                       onFocus?.(parentId);
