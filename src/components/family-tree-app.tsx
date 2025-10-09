@@ -1,4 +1,7 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,10 +20,13 @@ import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function FamilyTreeApp() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [ged, setGed] = useState<GedcomData | null>(() => 
     StorageUtils.loadLocal<GedcomData>("ft:ged-last")
   );
@@ -35,6 +41,49 @@ export function FamilyTreeApp() {
   const [maxGenerations, setMaxGenerations] = useState<number>(7);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Auth check
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+      if (!session?.user) {
+        navigate("/auth");
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Signed Out",
+      description: "You have been signed out successfully.",
+    });
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const stats = useMemo(() => {
     if (!ged) return { people: 0, families: 0, roots: 0 };
@@ -199,6 +248,9 @@ export function FamilyTreeApp() {
                 <Globe className="mr-2 h-4 w-4" />
                 Roadmap
                 <StatusIndicator status="not-configured" size="sm" className="absolute -top-1 -right-1" />
+              </Button>
+              <Button onClick={handleSignOut} variant="ghost" size="icon" title="Sign Out">
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
