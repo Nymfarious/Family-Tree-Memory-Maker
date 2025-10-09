@@ -47,6 +47,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("signin");
   const turnstileSignupRef = useRef<HTMLDivElement>(null);
   const turnstileSigninRef = useRef<HTMLDivElement>(null);
   const turnstileMagicRef = useRef<HTMLDivElement>(null);
@@ -128,23 +129,24 @@ export default function Auth() {
     }
   };
 
+  // Render Turnstile widget only for the active tab
   useEffect(() => {
     if (!window.turnstile || !TURNSTILE_SITE_KEY) return;
 
+    // Small delay to ensure DOM elements are ready after tab switch
     const timer = setTimeout(() => {
-      if (turnstileSignupRef.current && !turnstileWidgetIds.current.signup) {
+      // Only render widget for the active tab
+      if (activeTab === "signup" && turnstileSignupRef.current && !turnstileWidgetIds.current.signup) {
         renderTurnstile(turnstileSignupRef.current, 'signup');
-      }
-      if (turnstileSigninRef.current && !turnstileWidgetIds.current.signin) {
+      } else if (activeTab === "signin" && turnstileSigninRef.current && !turnstileWidgetIds.current.signin) {
         renderTurnstile(turnstileSigninRef.current, 'signin');
-      }
-      if (turnstileMagicRef.current && !turnstileWidgetIds.current.magic) {
+      } else if (activeTab === "magic" && turnstileMagicRef.current && !turnstileWidgetIds.current.magic) {
         renderTurnstile(turnstileMagicRef.current, 'magic');
       }
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [turnstileSignupRef.current, turnstileSigninRef.current, turnstileMagicRef.current]);
+  }, [activeTab, turnstileSignupRef.current, turnstileSigninRef.current, turnstileMagicRef.current]);
 
   const verifyTurnstile = async (token: string): Promise<boolean> => {
     if (!TURNSTILE_SITE_KEY) return true; // Skip if Turnstile not configured
@@ -339,7 +341,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
