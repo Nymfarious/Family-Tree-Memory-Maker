@@ -20,7 +20,7 @@ import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut, Activity } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function FamilyTreeApp() {
@@ -354,6 +354,11 @@ export function FamilyTreeApp() {
                 <Globe className="mr-2 h-4 w-4" />
                 Roadmap
                 <StatusIndicator status="not-configured" size="sm" className="absolute -top-1 -right-1" />
+              </Button>
+              <Button onClick={() => navigate('/code-health')} variant="outline" className="relative">
+                <Activity className="mr-2 h-4 w-4" />
+                Code Health
+                <StatusIndicator status="working" size="sm" className="absolute -top-1 -right-1" />
               </Button>
               <Button onClick={handleSignOut} variant="ghost" size="icon" title="Sign Out">
                 <LogOut className="h-4 w-4" />
