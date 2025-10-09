@@ -96,8 +96,14 @@ export class CloudStorage {
   }
 
   static async initDropboxAuth(): Promise<string> {
-    // Generate OAuth URL for Dropbox
-    const clientId = 'YOUR_DROPBOX_CLIENT_ID'; // User will need to provide this
+    // Get Dropbox app key from edge function
+    const { data, error } = await supabase.functions.invoke('get-dropbox-config');
+    
+    if (error || !data?.appKey) {
+      throw new Error('Dropbox configuration not available');
+    }
+    
+    const clientId = data.appKey;
     const redirectUri = `${window.location.origin}/auth/dropbox/callback`;
     const state = Math.random().toString(36).substring(7);
     
@@ -107,8 +113,14 @@ export class CloudStorage {
   }
 
   static async initGoogleDriveAuth(): Promise<string> {
-    // Generate OAuth URL for Google Drive
-    const clientId = 'YOUR_GOOGLE_CLIENT_ID'; // User will need to provide this
+    // Get Google Drive client ID from edge function
+    const { data, error } = await supabase.functions.invoke('get-google-config');
+    
+    if (error || !data?.clientId) {
+      throw new Error('Google Drive configuration not available');
+    }
+    
+    const clientId = data.clientId;
     const redirectUri = `${window.location.origin}/auth/google/callback`;
     const scope = 'https://www.googleapis.com/auth/drive.file';
     const state = Math.random().toString(36).substring(7);

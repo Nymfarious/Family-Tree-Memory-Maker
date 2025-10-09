@@ -15,3 +15,9 @@ verify_jwt = false  # Public function for bot protection verification
 
 [functions.google-drive-upload]
 # Requires JWT verification (default) - authenticated users only
+
+[functions.get-dropbox-config]
+verify_jwt = false  # Public function to get Dropbox app key for OAuth
+
+[functions.get-google-config]
+verify_jwt = false  # Public function to get Google client ID for OAuth
