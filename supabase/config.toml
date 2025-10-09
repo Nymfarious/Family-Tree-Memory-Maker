@@ -3,3 +3,9 @@ project_id = "tcxbhxzcvmwoowusbptb"
 # JWT verification is now ENABLED for all functions (secure by default)
 # All edge functions now require authentication via Authorization header
 # This prevents unauthorized access and service abuse
+
+[functions.verify-turnstile]
+verify_jwt = false  # Public function for bot protection verification
+
+[functions.generate-temporary-link]
+# Requires JWT verification (default) - admin only
