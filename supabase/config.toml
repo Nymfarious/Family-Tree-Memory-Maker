@@ -1,13 +1,5 @@
 project_id = "tcxbhxzcvmwoowusbptb"
 
-[functions.replicate-enhance]
-verify_jwt = false
-
-[functions.google-ai-insights]
-verify_jwt = false
-
-[functions.huggingface-analyze]
-verify_jwt = false
-
-[functions.dev-notes-ai]
-verify_jwt = false
+# JWT verification is now ENABLED for all functions (secure by default)
+# All edge functions now require authentication via Authorization header
+# This prevents unauthorized access and service abuse
