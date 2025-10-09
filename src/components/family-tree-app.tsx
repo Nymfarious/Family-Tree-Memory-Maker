@@ -62,6 +62,16 @@ export function FamilyTreeApp() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Calculate stats (must be before any early returns)
+  const stats = useMemo(() => {
+    if (!ged) return { people: 0, families: 0, roots: 0 };
+    return {
+      people: Object.keys(ged.people).length,
+      families: Object.keys(ged.families).length,
+      roots: ged.roots.length
+    };
+  }, [ged]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({
@@ -70,6 +80,7 @@ export function FamilyTreeApp() {
     });
   };
 
+  // Early returns AFTER all hooks
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -84,15 +95,6 @@ export function FamilyTreeApp() {
   if (!user) {
     return null;
   }
-
-  const stats = useMemo(() => {
-    if (!ged) return { people: 0, families: 0, roots: 0 };
-    return {
-      people: Object.keys(ged.people).length,
-      families: Object.keys(ged.families).length,
-      roots: ged.roots.length
-    };
-  }, [ged]);
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
