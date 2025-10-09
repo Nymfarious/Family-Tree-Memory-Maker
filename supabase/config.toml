@@ -21,3 +21,9 @@ verify_jwt = false  # Public function to get Dropbox app key for OAuth
 
 [functions.get-google-config]
 verify_jwt = false  # Public function to get Google client ID for OAuth
+
+[functions.code-health-chat]
+# Requires JWT verification (default) - authenticated users only
+
+[functions.transcribe-audio]
+# Requires JWT verification (default) - authenticated users only

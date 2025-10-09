@@ -12,12 +12,14 @@ import ReactFlow, {
   Edge,
   Connection,
   BackgroundVariant,
+  NodeMouseHandler,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CodeHealthChat } from "@/components/code-health-chat";
 import { toast } from "sonner";
 import { 
   Activity, 
@@ -196,6 +198,14 @@ export default function CodeHealth() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [activeLens, setActiveLens] = useState<LensType>('quality');
   const [analyzing, setAnalyzing] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<{
+    id: string;
+    label: string;
+    type: string;
+    quality?: number;
+    risk?: string;
+    performance?: number;
+  } | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -274,6 +284,18 @@ export default function CodeHealth() {
       setAnalyzing(false);
     }
   };
+
+  const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
+    setSelectedNode({
+      id: node.id,
+      label: node.data.label,
+      type: node.data.type,
+      quality: node.data.quality,
+      risk: node.data.risk,
+      performance: node.data.performance
+    });
+    toast(`Selected: ${node.data.label}`);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -391,6 +413,7 @@ export default function CodeHealth() {
                   onNodesChange={onNodesChange}
                   onEdgesChange={onEdgesChange}
                   onConnect={onConnect}
+                  onNodeClick={onNodeClick}
                   fitView
                   attributionPosition="bottom-right"
                 >
@@ -402,6 +425,12 @@ export default function CodeHealth() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Chat Interface */}
+        <CodeHealthChat 
+          selectedNode={selectedNode}
+          onClearSelection={() => setSelectedNode(null)}
+        />
       </main>
     </div>
   );
