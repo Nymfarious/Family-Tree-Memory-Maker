@@ -4,6 +4,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { CloudStorage } from "@/utils/cloudStorage";
+import { useToast } from "@/hooks/use-toast";
+import { Database, HardDrive } from "lucide-react";
 
 interface PreferencesModalProps {
   open: boolean;
@@ -28,18 +31,69 @@ const DEFAULT_PREFERENCES: CardDisplayPreferences = {
 
 export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   const [preferences, setPreferences] = useState<CardDisplayPreferences>(DEFAULT_PREFERENCES);
+  const [dropboxConnected, setDropboxConnected] = useState(false);
+  const [driveConnected, setDriveConnected] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const saved = localStorage.getItem('card-display-preferences');
     if (saved) {
       setPreferences(JSON.parse(saved));
     }
+
+    // Check cloud connections
+    setDropboxConnected(!!localStorage.getItem('dropbox_access_token'));
+    setDriveConnected(!!localStorage.getItem('google_drive_access_token'));
   }, [open]);
 
   const handlePreferenceChange = (key: keyof CardDisplayPreferences, value: boolean) => {
     const updated = { ...preferences, [key]: value };
     setPreferences(updated);
     localStorage.setItem('card-display-preferences', JSON.stringify(updated));
+  };
+
+  const handleConnectDropbox = async () => {
+    try {
+      const authUrl = await CloudStorage.initDropboxAuth();
+      window.location.href = authUrl;
+    } catch (error) {
+      toast({
+        title: "Connection Error",
+        description: "Could not initialize Dropbox connection. Please check configuration.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleConnectGoogleDrive = async () => {
+    try {
+      const authUrl = await CloudStorage.initGoogleDriveAuth();
+      window.location.href = authUrl;
+    } catch (error) {
+      toast({
+        title: "Connection Error",
+        description: "Could not initialize Google Drive connection. Please check configuration.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDisconnectDropbox = () => {
+    localStorage.removeItem('dropbox_access_token');
+    setDropboxConnected(false);
+    toast({
+      title: "Disconnected",
+      description: "Dropbox has been disconnected.",
+    });
+  };
+
+  const handleDisconnectGoogleDrive = () => {
+    localStorage.removeItem('google_drive_access_token');
+    setDriveConnected(false);
+    toast({
+      title: "Disconnected",
+      description: "Google Drive has been disconnected.",
+    });
   };
 
   return (
@@ -134,6 +188,48 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
               <Button variant="outline" size="sm" disabled>
                 Upload Image (Coming Soon)
               </Button>
+            </div>
+          </div>
+
+          {/* Cloud Storage Connections */}
+          <div className="space-y-3">
+            <Label>Cloud Storage</Label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
+                <div className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4 text-cyan-400" />
+                  <span className="text-sm">Dropbox</span>
+                </div>
+                {dropboxConnected ? (
+                  <Button variant="outline" size="sm" onClick={handleDisconnectDropbox}>
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button variant="default" size="sm" onClick={handleConnectDropbox}>
+                    Connect
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4 text-yellow-400" />
+                  <span className="text-sm">Google Drive</span>
+                </div>
+                {driveConnected ? (
+                  <Button variant="outline" size="sm" onClick={handleDisconnectGoogleDrive}>
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button variant="default" size="sm" onClick={handleConnectGoogleDrive}>
+                    Connect
+                  </Button>
+                )}
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Connect cloud storage to save your family tree data automatically.
+              </p>
             </div>
           </div>
         </div>

@@ -9,3 +9,9 @@ verify_jwt = false  # Public function for bot protection verification
 
 [functions.generate-temporary-link]
 # Requires JWT verification (default) - admin only
+
+[functions.dropbox-upload]
+# Requires JWT verification (default) - authenticated users only
+
+[functions.google-drive-upload]
+# Requires JWT verification (default) - authenticated users only

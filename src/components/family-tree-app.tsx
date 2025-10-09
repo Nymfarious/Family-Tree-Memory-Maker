@@ -155,12 +155,116 @@ export function FamilyTreeApp() {
     });
   };
 
-  const onChooseCloud = (providerId: CloudProvider) => {
+  const onChooseCloud = async (providerId: CloudProvider) => {
     setCloudOpen(false);
-    toast({
-      title: "Cloud Save Stub",
-      description: `Pretend-upload to: ${providerId}. Replace this with your actual API call.`,
-    });
+
+    if (!ged) {
+      toast({
+        title: "Nothing to Save",
+        description: "Please import a GEDCOM file first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const content = JSON.stringify(ged, null, 2);
+    const filename = `family-tree-${new Date().toISOString().split('T')[0]}.json`;
+
+    try {
+      switch (providerId) {
+        case 'supabase':
+          const { CloudStorage } = await import('@/utils/cloudStorage');
+          const supabaseStorage = new CloudStorage({ provider: 'supabase' });
+          const supabaseResult = await supabaseStorage.uploadFile(filename, content);
+          
+          if (supabaseResult.success) {
+            toast({
+              title: "✅ Saved to Cloud Storage",
+              description: "Your family tree has been saved securely.",
+            });
+          } else {
+            toast({
+              title: "Upload Failed",
+              description: supabaseResult.error || "Could not save to cloud storage.",
+              variant: "destructive",
+            });
+          }
+          break;
+
+        case 'dropbox':
+          const dropboxToken = localStorage.getItem('dropbox_access_token');
+          if (!dropboxToken) {
+            toast({
+              title: "Dropbox Not Connected",
+              description: "Please connect your Dropbox account in Preferences first.",
+              variant: "destructive",
+            });
+            setPrefsOpen(true);
+            return;
+          }
+          
+          const { CloudStorage: CloudStorage1 } = await import('@/utils/cloudStorage');
+          const dropboxStorage = new CloudStorage1({ provider: 'dropbox', accessToken: dropboxToken });
+          const dropboxResult = await dropboxStorage.uploadFile(filename, content);
+          
+          if (dropboxResult.success) {
+            toast({
+              title: "✅ Saved to Dropbox",
+              description: `Saved to: ${dropboxResult.url}`,
+            });
+          } else {
+            toast({
+              title: "Dropbox Upload Failed",
+              description: dropboxResult.error || "Could not upload to Dropbox.",
+              variant: "destructive",
+            });
+          }
+          break;
+
+        case 'drive':
+          const driveToken = localStorage.getItem('google_drive_access_token');
+          if (!driveToken) {
+            toast({
+              title: "Google Drive Not Connected",
+              description: "Please connect your Google Drive account in Preferences first.",
+              variant: "destructive",
+            });
+            setPrefsOpen(true);
+            return;
+          }
+          
+          const { CloudStorage: CloudStorage2 } = await import('@/utils/cloudStorage');
+          const driveStorage = new CloudStorage2({ provider: 'drive', accessToken: driveToken });
+          const driveResult = await driveStorage.uploadFile(filename, content);
+          
+          if (driveResult.success) {
+            toast({
+              title: "✅ Saved to Google Drive",
+              description: `File ID: ${driveResult.url}`,
+            });
+          } else {
+            toast({
+              title: "Google Drive Upload Failed",
+              description: driveResult.error || "Could not upload to Google Drive.",
+              variant: "destructive",
+            });
+          }
+          break;
+
+        default:
+          toast({
+            title: "Coming Soon",
+            description: `${providerId} integration is in development.`,
+          });
+      }
+    } catch (error) {
+      console.error('Cloud upload error:', error);
+      toast({
+        title: "Upload Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
   };
 
   const changelog: ChangeLogEntry[] = [
