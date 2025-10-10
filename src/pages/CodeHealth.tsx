@@ -17,6 +17,7 @@ import ReactFlow, {
   Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import dagre from 'dagre';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +36,7 @@ import {
 
 type LensType = 'quality' | 'risk' | 'performance';
 type ComponentType = 'core' | 'page' | 'component' | 'util' | 'backend' | 'button' | 'api';
-type ViewMode = 'all' | 'frontend' | 'backend';
+type ViewMode = 'all' | 'frontend' | 'backend' | 'hierarchy';
 
 // Expanded nodes representing ALL project components
 const initialNodes: Node[] = [
@@ -431,6 +432,9 @@ export default function CodeHealth() {
     } else if (viewMode === 'backend') {
       // Backend includes: api, backend
       return ['api', 'backend'].includes(node.data.type);
+    } else if (viewMode === 'hierarchy') {
+      // Show all nodes for hierarchy view
+      return true;
     }
     
     return true; // 'all' mode
@@ -495,6 +499,54 @@ export default function CodeHealth() {
         : [...prev, nodeId]
     );
   };
+
+  // Layout the graph based on view mode
+  useEffect(() => {
+    if (filteredNodes.length > 0) {
+      const dagreGraph = new dagre.graphlib.Graph();
+      dagreGraph.setDefaultEdgeLabel(() => ({}));
+      
+      // Use top-to-bottom layout for hierarchy view, left-to-right for others
+      if (viewMode === 'hierarchy') {
+        dagreGraph.setGraph({ 
+          rankdir: 'TB',  // Top to Bottom
+          ranksep: 100,   // Vertical spacing between ranks
+          nodesep: 60,    // Horizontal spacing between nodes
+          align: 'UL'     // Align to upper left
+        });
+      } else {
+        dagreGraph.setGraph({ 
+          rankdir: 'LR',  // Left to Right
+          ranksep: 100, 
+          nodesep: 50 
+        });
+      }
+
+      filteredNodes.forEach((node) => {
+        dagreGraph.setNode(node.id, { width: 150, height: 50 });
+      });
+
+      filteredEdges.forEach((edge) => {
+        dagreGraph.setEdge(edge.source, edge.target);
+      });
+
+      dagre.layout(dagreGraph);
+
+      const layoutedNodes = filteredNodes.map((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        return {
+          ...node,
+          position: {
+            x: nodeWithPosition.x - 75,
+            y: nodeWithPosition.y - 25,
+          },
+        };
+      });
+
+      setNodes(layoutedNodes);
+      setEdges(filteredEdges);
+    }
+  }, [filteredNodes.length, filteredEdges.length, viewMode]);
 
   // Handle lens change
   const handleLensChange = (lens: LensType) => {
@@ -645,14 +697,23 @@ export default function CodeHealth() {
           <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Application Architecture</span>
+                <span>
+                  {viewMode === 'hierarchy' ? 'Element Tree' : 'Application Architecture'}
+                </span>
                 <div className="flex gap-2">
                   <Button
                     size="sm"
                     variant={viewMode === 'all' ? 'default' : 'outline'}
                     onClick={() => setViewMode('all')}
                   >
-                    All
+                    Application Architecture
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={viewMode === 'hierarchy' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('hierarchy')}
+                  >
+                    Element Tree
                   </Button>
                   <Button
                     size="sm"
