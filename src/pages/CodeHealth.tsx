@@ -500,6 +500,39 @@ export default function CodeHealth() {
     );
   };
 
+  // Get score color based on lens and value
+  const getScoreColor = (node: any) => {
+    let score = 0;
+    
+    if (activeLens === 'quality') {
+      score = node.data.quality || 0;
+    } else if (activeLens === 'risk') {
+      const risk = node.data.risk || 'unknown';
+      if (risk === 'low') return 'text-green-500';
+      if (risk === 'medium') return 'text-yellow-500';
+      if (risk === 'high') return 'text-red-500';
+      return 'text-gray-500';
+    } else if (activeLens === 'performance') {
+      score = node.data.performance || 0;
+    }
+    
+    if (score >= 85) return 'text-green-500';
+    if (score >= 70) return 'text-blue-500';
+    if (score >= 50) return 'text-orange-500';
+    return 'text-red-500';
+  };
+
+  const getScoreValue = (node: any) => {
+    if (activeLens === 'quality') {
+      return `${node.data.quality || 0}%`;
+    } else if (activeLens === 'risk') {
+      return node.data.risk || 'unknown';
+    } else if (activeLens === 'performance') {
+      return `${node.data.performance || 0}%`;
+    }
+    return 'N/A';
+  };
+
   // Layout the graph based on view mode
   useEffect(() => {
     if (filteredNodes.length > 0) {
@@ -617,27 +650,42 @@ export default function CodeHealth() {
 
   // Custom node renderer with star button and proper handles
   const nodeTypes = {
-    default: ({ data }: any) => (
-      <>
-        <Handle type="target" position={Position.Left} />
-        <div className="relative group">
-          <div className="px-3 py-2 rounded bg-inherit border-inherit">
-            {data.label}
+    default: ({ data, id }: any) => {
+      const isStarred = starredNodes.includes(id);
+      const currentNode = nodes.find(n => n.id === id);
+      
+      return (
+        <>
+          <Handle type="target" position={Position.Left} />
+          <div className="relative group">
+            <div className="px-3 py-2 rounded bg-inherit border-inherit flex flex-col items-center gap-1">
+              <div className="text-sm font-semibold">{data.label}</div>
+              {data.type && (
+                <Badge variant="secondary" className="text-xs">
+                  {data.type}
+                </Badge>
+              )}
+              {currentNode && (
+                <div className={`text-xs font-bold ${getScoreColor(currentNode)}`}>
+                  {getScoreValue(currentNode)}
+                </div>
+              )}
+            </div>
+            <button 
+              className="star-icon absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Star 
+                className={`h-4 w-4 ${isStarred ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground hover:text-yellow-500'}`}
+              />
+            </button>
           </div>
-          <button 
-            className="star-icon absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <Star 
-              className={`h-4 w-4 ${starredNodes.includes(data.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
-            />
-          </button>
-        </div>
-        <Handle type="source" position={Position.Right} />
-      </>
-    )
+          <Handle type="source" position={Position.Right} />
+        </>
+      );
+    }
   };
 
   return (

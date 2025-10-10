@@ -92,6 +92,11 @@ export function CodeHealthSidebar({
               Performance
             </Button>
           </div>
+          <div className="text-xs text-muted-foreground pt-2 space-y-1">
+            <p><strong>Quality:</strong> Code maintainability, testing, and best practices</p>
+            <p><strong>Risk:</strong> Security vulnerabilities and stability issues</p>
+            <p><strong>Performance:</strong> Speed, efficiency, and resource usage</p>
+          </div>
         </div>
 
         {/* Component Type Filters */}
@@ -140,9 +145,29 @@ export function CodeHealthSidebar({
               <span>Needs Work (&lt;50%)</span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground pt-2">
-            Scores represent code quality, security risk level, or performance metrics based on the selected lens.
-          </p>
+        </div>
+
+        {/* Connection Types Legend */}
+        <div className="space-y-3 pt-3 border-t">
+          <h3 className="text-sm font-semibold">Connection Types</h3>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="h-0.5 w-8 bg-primary"></div>
+              <span>Direct dependency</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-0.5 w-8 bg-blue-500 opacity-60"></div>
+              <span>Data flow</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-0.5 w-8 bg-orange-500" style={{ strokeDasharray: '5,5' }}></div>
+              <span>API call</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-500 text-base">★</span>
+              <span>Starred (click block to toggle)</span>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
