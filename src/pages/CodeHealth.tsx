@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CodeHealthChat } from "@/components/code-health-chat";
 import { CodeHealthSidebar } from "@/components/code-health-sidebar";
 import { CodeHealthPriorityPanel } from "@/components/code-health-priority-panel";
+import { CodeHealthSettings } from "@/components/code-health-settings";
 import { toast } from "sonner";
 import { 
   Activity, 
@@ -32,6 +33,7 @@ import {
 
 type LensType = 'quality' | 'risk' | 'performance';
 type ComponentType = 'core' | 'page' | 'component' | 'util' | 'backend' | 'button' | 'api';
+type ViewMode = 'all' | 'frontend' | 'backend';
 
 // Expanded nodes representing ALL project components
 const initialNodes: Node[] = [
@@ -399,6 +401,7 @@ export default function CodeHealth() {
     risk?: string;
     performance?: number;
   } | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('all');
 
   // Check authentication
   useEffect(() => {
@@ -414,17 +417,27 @@ export default function CodeHealth() {
     [setEdges],
   );
 
-  // Filter nodes based on selected types
-  const filteredNodes = nodes.filter(node => 
-    selectedTypes.includes(node.data.type as ComponentType)
-  );
+  // Filter nodes based on selected types and view mode
+  const filteredNodes = nodes.filter(node => {
+    // Type filter
+    if (!selectedTypes.includes(node.data.type as ComponentType)) return false;
+    
+    // View mode filter
+    if (viewMode === 'frontend') {
+      // Frontend includes: core, page, component, util, button
+      return ['core', 'page', 'component', 'util', 'button'].includes(node.data.type);
+    } else if (viewMode === 'backend') {
+      // Backend includes: api, backend
+      return ['api', 'backend'].includes(node.data.type);
+    }
+    
+    return true; // 'all' mode
+  });
 
   const filteredEdges = edges.filter(edge => {
-    const sourceNode = nodes.find(n => n.id === edge.source);
-    const targetNode = nodes.find(n => n.id === edge.target);
-    return sourceNode && targetNode && 
-           selectedTypes.includes(sourceNode.data.type) && 
-           selectedTypes.includes(targetNode.data.type);
+    const sourceNode = filteredNodes.find(n => n.id === edge.source);
+    const targetNode = filteredNodes.find(n => n.id === edge.target);
+    return sourceNode && targetNode;
   });
 
   // Apply color-coding based on active lens
@@ -487,21 +500,43 @@ export default function CodeHealth() {
     applyLensColors(lens);
   };
 
-  // Manual analyze button
+  // Real analyze function using edge function
   const handleAnalyze = async () => {
     setAnalyzing(true);
     toast("🔍 Analyzing codebase...");
     
     try {
-      // TODO: Connect to AgentKit for real analysis
-      // For now, simulate analysis
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-codebase`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ projectPath: '/src' }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+
+      const data = await response.json();
       
-      toast.success("✅ Analysis complete!");
+      // Update nodes with real analysis data
+      if (data.components && data.components.length > 0) {
+        // TODO: Transform analysis results into nodes
+        toast.success(`✅ Found ${data.components.length} components!`);
+      } else {
+        toast.success("✅ Analysis complete!");
+      }
+      
       applyLensColors(activeLens);
     } catch (error) {
-      toast.error("❌ Analysis failed");
+      toast.error("❌ Analysis failed - using default view");
       console.error(error);
+      applyLensColors(activeLens);
     } finally {
       setAnalyzing(false);
     }
@@ -553,20 +588,23 @@ export default function CodeHealth() {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => navigate('/')}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <Activity className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-2xl font-bold text-primary">Code Health Monitor</h1>
-                <p className="text-xs text-muted-foreground">Visualize & analyze your application architecture</p>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navigate('/')}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <Activity className="h-8 w-8 text-primary" />
+                <div>
+                  <h1 className="text-2xl font-bold text-primary">Code Health Monitor</h1>
+                  <p className="text-xs text-muted-foreground">Visualize & analyze your application architecture</p>
+                </div>
+                <Badge variant="outline" className="text-xs">Beta</Badge>
               </div>
-              <Badge variant="outline" className="text-xs">Beta</Badge>
+              <CodeHealthSettings />
             </div>
           </div>
         </div>
@@ -602,10 +640,28 @@ export default function CodeHealth() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Application Architecture</span>
-                <div className="flex gap-2 text-xs text-muted-foreground">
-                  <span>← Frontend</span>
-                  <span>•</span>
-                  <span>Backend →</span>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={viewMode === 'all' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('all')}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={viewMode === 'frontend' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('frontend')}
+                  >
+                    Frontend
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={viewMode === 'backend' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('backend')}
+                  >
+                    Backend
+                  </Button>
                 </div>
               </CardTitle>
             </CardHeader>

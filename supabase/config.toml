@@ -27,3 +27,6 @@ verify_jwt = false  # Public function to get Google client ID for OAuth
 
 [functions.transcribe-audio]
 # Requires JWT verification (default) - authenticated users only
+
+[functions.analyze-codebase]
+# Requires JWT verification (default) - authenticated users only

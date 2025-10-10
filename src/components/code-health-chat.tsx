@@ -273,7 +273,8 @@ export function CodeHealthChat({ selectedNode, onClearSelection }: CodeHealthCha
             </div>
           </ScrollArea>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t space-y-2">
+            {/* Input row with mic button */}
             <div className="flex gap-2">
               <Input
                 value={input}
@@ -286,31 +287,49 @@ export function CodeHealthChat({ selectedNode, onClearSelection }: CodeHealthCha
               
               <Button
                 size="icon"
-                variant={isRecording ? "destructive" : "outline"}
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={isSending || isTranscribing}
+                variant={isRecording ? "default" : "outline"}
+                onClick={startRecording}
+                disabled={isSending || isTranscribing || isRecording}
               >
-                {isRecording ? (
-                  <MicOff className="h-4 w-4" />
-                ) : isTranscribing ? (
+                {isTranscribing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Mic className="h-4 w-4" />
                 )}
               </Button>
-              
-              <Button
-                size="icon"
-                onClick={() => sendMessage(input)}
-                disabled={!input.trim() || isSending || isRecording}
-              >
-                {isSending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
             </div>
+
+            {/* Stop recording button - only visible when recording */}
+            {isRecording && (
+              <Button
+                variant="destructive"
+                onClick={stopRecording}
+                className="w-full"
+              >
+                <MicOff className="h-4 w-4 mr-2" />
+                Stop Recording
+              </Button>
+            )}
+
+            {/* Send button - separate and prominent */}
+            <Button
+              onClick={() => sendMessage(input)}
+              disabled={!input.trim() || isSending || isRecording}
+              className="w-full"
+              size="lg"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2 rotate-90" />
+                  Send Message
+                </>
+              )}
+            </Button>
           </div>
         </Card>
       )}
