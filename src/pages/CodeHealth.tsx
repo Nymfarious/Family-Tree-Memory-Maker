@@ -26,6 +26,7 @@ import { CodeHealthChat } from "@/components/code-health-chat";
 import { CodeHealthSidebar } from "@/components/code-health-sidebar";
 import { CodeHealthPriorityPanel } from "@/components/code-health-priority-panel";
 import { CodeHealthSettings } from "@/components/code-health-settings";
+import { AIWorkspace } from "@/components/ai-workspace";
 import { toast } from "sonner";
 import { 
   Activity, 
@@ -36,7 +37,7 @@ import {
 
 type LensType = 'quality' | 'risk' | 'performance';
 type ComponentType = 'core' | 'page' | 'component' | 'util' | 'backend' | 'button' | 'api';
-type ViewMode = 'all' | 'frontend' | 'backend' | 'hierarchy';
+type ViewMode = 'all' | 'frontend' | 'backend' | 'hierarchy' | 'workspace';
 
 // Expanded nodes representing ALL project components
 const initialNodes: Node[] = [
@@ -454,10 +455,10 @@ export default function CodeHealth() {
         
         if (lens === 'quality') {
           const quality = typeof node.data.quality === 'number' ? node.data.quality : 0;
-          if (quality >= 85) color = '#10b981';
-          else if (quality >= 70) color = '#3b82f6';
-          else if (quality >= 50) color = '#f59e0b';
-          else color = '#ef4444';
+          if (quality >= 95) color = '#10b981'; // Green
+          else if (quality >= 70) color = '#eab308'; // Yellow
+          else if (quality >= 20) color = '#f59e0b'; // Orange
+          else color = '#ef4444'; // Red
         } else if (lens === 'risk') {
           const risk = node.data.risk || 'unknown';
           if (risk === 'low') color = '#10b981';
@@ -465,10 +466,10 @@ export default function CodeHealth() {
           else if (risk === 'high') color = '#ef4444';
         } else if (lens === 'performance') {
           const perf = typeof node.data.performance === 'number' ? node.data.performance : 0;
-          if (perf >= 85) color = '#10b981';
-          else if (perf >= 70) color = '#3b82f6';
-          else if (perf >= 50) color = '#f59e0b';
-          else color = '#ef4444';
+          if (perf >= 95) color = '#10b981'; // Green
+          else if (perf >= 70) color = '#eab308'; // Yellow
+          else if (perf >= 20) color = '#f59e0b'; // Orange
+          else color = '#ef4444'; // Red
         }
         
         return {
@@ -516,9 +517,9 @@ export default function CodeHealth() {
       score = node.data.performance || 0;
     }
     
-    if (score >= 85) return 'text-green-500';
-    if (score >= 70) return 'text-blue-500';
-    if (score >= 50) return 'text-orange-500';
+    if (score >= 95) return 'text-green-500';
+    if (score >= 70) return 'text-yellow-500';
+    if (score >= 20) return 'text-orange-500';
     return 'text-red-500';
   };
 
@@ -543,15 +544,15 @@ export default function CodeHealth() {
       if (viewMode === 'hierarchy') {
         dagreGraph.setGraph({ 
           rankdir: 'TB',  // Top to Bottom
-          ranksep: 100,   // Vertical spacing between ranks
-          nodesep: 60,    // Horizontal spacing between nodes
+          ranksep: 150,   // Vertical spacing between ranks (increased)
+          nodesep: 100,   // Horizontal spacing between nodes (increased)
           align: 'UL'     // Align to upper left
         });
       } else {
         dagreGraph.setGraph({ 
           rankdir: 'LR',  // Left to Right
-          ranksep: 100, 
-          nodesep: 50 
+          ranksep: 150,   // Increased spacing
+          nodesep: 80     // Increased spacing
         });
       }
 
@@ -630,7 +631,7 @@ export default function CodeHealth() {
   };
 
   const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
-    // Check if clicking on star icon (rough position check)
+    // Check if clicking on star icon
     const target = event.target as HTMLElement;
     if (target.closest('.star-icon')) {
       toggleStar(node.id);
@@ -657,7 +658,7 @@ export default function CodeHealth() {
       return (
         <>
           <Handle type="target" position={Position.Left} />
-          <div className="relative group">
+          <div className="relative">
             <div className="px-3 py-2 rounded bg-inherit border-inherit flex flex-col items-center gap-1">
               <div className="text-sm font-semibold">{data.label}</div>
               {data.type && (
@@ -672,7 +673,7 @@ export default function CodeHealth() {
               )}
             </div>
             <button 
-              className="star-icon absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="star-icon absolute -top-3 -right-3 bg-background rounded-full p-0.5 shadow-sm border border-border"
               onClick={(e) => {
                 e.stopPropagation();
               }}
@@ -723,8 +724,8 @@ export default function CodeHealth() {
           <Info className="h-4 w-4" />
           <AlertDescription>
             <strong>Getting Started:</strong> Click the <strong>Analyze</strong> button in the sidebar to scan your codebase. 
-            Use the filters to focus on specific component types. Click any node to ask questions or click the star to add it to your priority list.
-            Scores represent quality completion (85-100% = excellent, below 50% needs work).
+            Use the filters to focus on specific component types. Click the star icon on any node to add it to your priority list.
+            Scores represent quality completion (95-100% = excellent, below 20% needs work).
           </AlertDescription>
         </Alert>
 
@@ -748,7 +749,7 @@ export default function CodeHealth() {
                 <span>
                   {viewMode === 'hierarchy' ? 'Element Tree' : 'Application Architecture'}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     size="sm"
                     variant={viewMode === 'all' ? 'default' : 'outline'}
@@ -777,27 +778,38 @@ export default function CodeHealth() {
                   >
                     Backend
                   </Button>
+                  <Button
+                    size="sm"
+                    variant={viewMode === 'workspace' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('workspace')}
+                  >
+                    AI Workspace
+                  </Button>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div style={{ height: '700px', width: '100%' }} className="border rounded-lg bg-muted/20">
-                <ReactFlow
-                  nodes={filteredNodes}
-                  edges={filteredEdges}
-                  onNodesChange={onNodesChange}
-                  onEdgesChange={onEdgesChange}
-                  onConnect={onConnect}
-                  onNodeClick={onNodeClick}
-                  nodeTypes={nodeTypes}
-                  fitView
-                  attributionPosition="bottom-right"
-                >
-                  <Controls />
-                  <MiniMap />
-                  <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-                </ReactFlow>
-              </div>
+              {viewMode === 'workspace' ? (
+                <AIWorkspace />
+              ) : (
+                <div style={{ height: '700px', width: '100%' }} className="border rounded-lg bg-muted/20">
+                  <ReactFlow
+                    nodes={filteredNodes}
+                    edges={filteredEdges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    onNodeClick={onNodeClick}
+                    nodeTypes={nodeTypes}
+                    fitView
+                    attributionPosition="bottom-right"
+                  >
+                    <Controls />
+                    <MiniMap />
+                    <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+                  </ReactFlow>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

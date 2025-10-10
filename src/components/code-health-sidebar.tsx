@@ -130,19 +130,19 @@ export function CodeHealthSidebar({
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-green-500"></div>
-              <span>Excellent (85-100%)</span>
+              <span>Excellent (95-100%)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-              <span>Good (70-84%)</span>
+              <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+              <span>Good (70-94%)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-orange-500"></div>
-              <span>Fair (50-69%)</span>
+              <span>Fair (20-69%)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-red-500"></div>
-              <span>Needs Work (&lt;50%)</span>
+              <span>Needs Work (&lt;20%)</span>
             </div>
           </div>
         </div>
@@ -152,20 +152,38 @@ export function CodeHealthSidebar({
           <h3 className="text-sm font-semibold">Connection Types</h3>
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
-              <div className="h-0.5 w-8 bg-primary"></div>
+              <svg width="32" height="2" className="flex-shrink-0">
+                <line x1="0" y1="1" x2="32" y2="1" stroke="currentColor" strokeWidth="2" className="text-primary" />
+              </svg>
               <span>Direct dependency</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-0.5 w-8 bg-blue-500 opacity-60"></div>
-              <span>Data flow</span>
+              <svg width="32" height="2" className="flex-shrink-0">
+                <line x1="0" y1="1" x2="32" y2="1" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4,2" />
+              </svg>
+              <span>Data flow (dashed)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-0.5 w-8 bg-orange-500" style={{ strokeDasharray: '5,5' }}></div>
-              <span>API call</span>
+              <svg width="32" height="2" className="flex-shrink-0">
+                <line x1="0" y1="1" x2="32" y2="1" stroke="#f59e0b" strokeWidth="2" strokeDasharray="6,3" />
+              </svg>
+              <span>API call (dotted)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg width="32" height="2" className="flex-shrink-0">
+                <line x1="0" y1="1" x2="32" y2="1" stroke="#8b5cf6" strokeWidth="2.5" />
+              </svg>
+              <span>Event handler</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg width="32" height="2" className="flex-shrink-0">
+                <line x1="0" y1="1" x2="32" y2="1" stroke="#ec4899" strokeWidth="1.5" strokeDasharray="2,2" />
+              </svg>
+              <span>State management</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-yellow-500 text-base">★</span>
-              <span>Starred (click block to toggle)</span>
+              <span>Starred (click star on node)</span>
             </div>
           </div>
         </div>
