@@ -819,8 +819,10 @@ export default function CodeHealth() {
                     <Controls />
                     <MiniMap 
                       nodeColor={(node) => node.data.indicatorColor || '#94a3b8'}
-                      maskColor="rgba(0, 0, 0, 0.6)"
+                      maskColor="rgba(0, 0, 0, 0.8)"
                       position="bottom-left"
+                      pannable={true}
+                      zoomable={true}
                       onClick={(event, position) => {
                         setCenter(position.x, position.y, { zoom: getZoom(), duration: 800 });
                       }}
@@ -828,11 +830,11 @@ export default function CodeHealth() {
                         width: 160,
                         height: 120,
                         backgroundColor: 'hsl(var(--card))',
-                        border: '2px solid hsl(var(--border))',
+                        border: '2px solid hsl(var(--primary) / 0.5)',
                         borderRadius: '12px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                         marginLeft: '80px',
-                        cursor: 'crosshair'
+                        cursor: 'grab'
                       }}
                     />
                     <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
