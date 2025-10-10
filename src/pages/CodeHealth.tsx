@@ -28,17 +28,19 @@ import { CodeHealthSidebar } from "@/components/code-health-sidebar";
 import { CodeHealthPriorityPanel } from "@/components/code-health-priority-panel";
 import { CodeHealthSettings } from "@/components/code-health-settings";
 import { AIWorkspace } from "@/components/ai-workspace";
+import { FlowchartLibrary } from "@/components/flowchart-library";
 import { toast } from "sonner";
 import { 
   Activity, 
   ArrowLeft,
   Star,
-  Info
+  Info,
+  Library
 } from "lucide-react";
 
 type LensType = 'quality' | 'risk' | 'performance';
 type ComponentType = 'core' | 'page' | 'component' | 'util' | 'backend' | 'button' | 'api';
-type ViewMode = 'all' | 'frontend' | 'backend' | 'hierarchy' | 'workspace';
+type ViewMode = 'all' | 'frontend' | 'backend' | 'hierarchy' | 'workspace' | 'library';
 
 // Expanded nodes representing ALL project components
 const initialNodes: Node[] = [
@@ -797,12 +799,22 @@ export default function CodeHealth() {
                   >
                     AI Workspace
                   </Button>
+                  <Button
+                    size="sm"
+                    variant={viewMode === 'library' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('library')}
+                  >
+                    <Library className="h-4 w-4 mr-2" />
+                    Library
+                  </Button>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {viewMode === 'workspace' ? (
                 <AIWorkspace />
+              ) : viewMode === 'library' ? (
+                <FlowchartLibrary onClose={() => setViewMode('all')} />
               ) : (
                 <div style={{ height: '700px', width: '100%' }} className="border rounded-lg bg-muted/20">
                   <ReactFlow

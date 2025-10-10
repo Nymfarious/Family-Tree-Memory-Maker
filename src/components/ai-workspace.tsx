@@ -16,19 +16,23 @@ import 'reactflow/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { FlowchartLibrary } from "@/components/flowchart-library";
 import { toast } from "sonner";
 import { 
   Mic, 
-  MicOff, 
   Send, 
-  Plus, 
   Square, 
   Circle, 
   Diamond,
   Hexagon,
   Trash2,
-  Sparkles
+  Sparkles,
+  Save,
+  Library,
+  Cloud,
+  HardDrive
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,6 +46,9 @@ export function AIWorkspace({ onClose }: AIWorkspaceProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -204,15 +211,66 @@ export function AIWorkspace({ onClose }: AIWorkspaceProps) {
     }
   };
 
+  const saveFlowchart = (storageType: 'local' | 'cloud') => {
+    if (!saveName.trim()) {
+      toast.error("Please enter a name");
+      return;
+    }
+
+    if (nodes.length === 0) {
+      toast.error("Nothing to save");
+      return;
+    }
+
+    const flowchart = {
+      id: `flow-${Date.now()}`,
+      name: saveName.trim(),
+      nodes,
+      edges,
+      created_at: new Date().toISOString(),
+      storage_type: storageType
+    };
+
+    // Load existing flowcharts
+    const stored = localStorage.getItem('flowcharts');
+    const flowcharts = stored ? JSON.parse(stored) : [];
+    flowcharts.push(flowchart);
+    localStorage.setItem('flowcharts', JSON.stringify(flowcharts));
+
+    toast.success(`Saved to ${storageType === 'cloud' ? 'Cloud' : 'Local Storage'}`);
+    setShowSaveDialog(false);
+    setSaveName("");
+  };
+
+  const loadFlowchart = (loadedNodes: Node[], loadedEdges: Edge[]) => {
+    setNodes(loadedNodes);
+    setEdges(loadedEdges);
+    setShowLibrary(false);
+  };
+
+  if (showLibrary) {
+    return <FlowchartLibrary onLoad={loadFlowchart} onClose={() => setShowLibrary(false)} />;
+  }
+
   return (
     <div className="space-y-4">
       {/* Toolbar */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            AI Workspace - Design Your Flow
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              AI Workspace - Design Your Flow
+            </CardTitle>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowLibrary(true)}
+            >
+              <Library className="h-4 w-4 mr-2" />
+              Library
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Shape Tools */}
@@ -261,35 +319,76 @@ export function AIWorkspace({ onClose }: AIWorkspaceProps) {
 
           {/* Voice Input & AI Generation */}
           <div className="space-y-2">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {/* Voice Controls */}
               <Button
                 size="sm"
                 variant={isRecording ? "destructive" : "default"}
                 onClick={isRecording ? stopRecording : startRecording}
                 disabled={isProcessing}
               >
-                {isRecording ? (
-                  <>
-                    <MicOff className="h-4 w-4 mr-2" />
-                    Stop Recording
-                  </>
-                ) : (
-                  <>
-                    <Mic className="h-4 w-4 mr-2" />
-                    Voice Input
-                  </>
-                )}
+                {isRecording ? "Stop" : <Mic className="h-4 w-4" />}
               </Button>
+
+              {/* Send Button - Separate */}
               <Button
                 size="sm"
                 variant="secondary"
                 onClick={generateFromAI}
                 disabled={!transcript.trim() || isProcessing}
               >
-                <Sparkles className="h-4 w-4 mr-2" />
-                {isProcessing ? "Generating..." : "Generate with AI"}
+                <Send className="h-4 w-4" />
+              </Button>
+
+              <div className="h-4 w-px bg-border mx-1" />
+
+              {/* Save Button */}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowSaveDialog(!showSaveDialog)}
+                disabled={nodes.length === 0}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save
               </Button>
             </div>
+
+            {/* Save Dialog */}
+            {showSaveDialog && (
+              <Card className="p-3 bg-muted/50">
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Enter flowchart name..."
+                    value={saveName}
+                    onChange={(e) => setSaveName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveFlowchart('local');
+                    }}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => saveFlowchart('local')}
+                      className="flex-1"
+                    >
+                      <HardDrive className="h-4 w-4 mr-2" />
+                      Save Locally
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => saveFlowchart('cloud')}
+                      className="flex-1"
+                    >
+                      <Cloud className="h-4 w-4 mr-2" />
+                      Save to Cloud
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
 
             <Textarea
               placeholder="Describe your flowchart idea here... You can type or use voice input above."
@@ -302,9 +401,9 @@ export function AIWorkspace({ onClose }: AIWorkspaceProps) {
           <div className="text-xs text-muted-foreground space-y-1">
             <p>💡 <strong>How to use:</strong></p>
             <p>• Click shapes above to add nodes, then drag to connect them</p>
-            <p>• Use voice input or type to describe your idea</p>
-            <p>• Click "Generate with AI" to auto-create a flowchart</p>
-            <p>• Right-click nodes to edit or delete them</p>
+            <p>• Use voice/type to describe your idea, then click Send</p>
+            <p>• Save your flowchart locally or to the cloud</p>
+            <p>• Access saved flowcharts from the Library</p>
           </div>
         </CardContent>
       </Card>
