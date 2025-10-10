@@ -13,6 +13,8 @@ import ReactFlow, {
   Connection,
   BackgroundVariant,
   NodeMouseHandler,
+  Handle,
+  Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -561,25 +563,32 @@ export default function CodeHealth() {
     }
   }, [starredNodes]);
 
-  // Custom node renderer with star button
+  // Custom node renderer with star button and proper handles
   const nodeTypes = {
-    default: ({ data }: any) => (
-      <div className="relative group">
-        <div className="px-3 py-2 rounded bg-inherit border-inherit">
-          {data.label}
-        </div>
-        <button 
-          className="star-icon absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <Star 
-            className={`h-4 w-4 ${starredNodes.includes(data.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
-          />
-        </button>
-      </div>
-    )
+    default: ({ data }: any) => {
+      const { Handle, Position } = require('reactflow');
+      return (
+        <>
+          <Handle type="target" position={Position.Left} />
+          <div className="relative group">
+            <div className="px-3 py-2 rounded bg-inherit border-inherit">
+              {data.label}
+            </div>
+            <button 
+              className="star-icon absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Star 
+                className={`h-4 w-4 ${starredNodes.includes(data.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
+              />
+            </button>
+          </div>
+          <Handle type="source" position={Position.Right} />
+        </>
+      );
+    }
   };
 
   return (
