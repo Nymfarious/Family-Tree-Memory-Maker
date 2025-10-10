@@ -15,6 +15,7 @@ import ReactFlow, {
   NodeMouseHandler,
   Handle,
   Position,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import dagre from 'dagre';
@@ -389,6 +390,7 @@ const initialEdges: Edge[] = [
 
 export default function CodeHealth() {
   const navigate = useNavigate();
+  const { fitView } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [activeLens, setActiveLens] = useState<LensType>('quality');
@@ -447,7 +449,7 @@ export default function CodeHealth() {
     return sourceNode && targetNode;
   });
 
-  // Apply color-coding based on active lens
+  // Apply color-coding based on active lens (5-point scale)
   const applyLensColors = useCallback((lens: LensType) => {
     setNodes((nds) => 
       nds.map((node) => {
@@ -455,10 +457,11 @@ export default function CodeHealth() {
         
         if (lens === 'quality') {
           const quality = typeof node.data.quality === 'number' ? node.data.quality : 0;
-          if (quality >= 95) color = '#10b981'; // Green
-          else if (quality >= 70) color = '#eab308'; // Yellow
-          else if (quality >= 20) color = '#f59e0b'; // Orange
-          else color = '#ef4444'; // Red
+          if (quality >= 95) color = '#10b981'; // Green - Excellent
+          else if (quality >= 80) color = '#3b82f6'; // Blue - Good
+          else if (quality >= 60) color = '#eab308'; // Yellow - Fair
+          else if (quality >= 40) color = '#f59e0b'; // Orange - Needs Attention
+          else color = '#ef4444'; // Red - Critical
         } else if (lens === 'risk') {
           const risk = node.data.risk || 'unknown';
           if (risk === 'low') color = '#10b981';
@@ -466,19 +469,18 @@ export default function CodeHealth() {
           else if (risk === 'high') color = '#ef4444';
         } else if (lens === 'performance') {
           const perf = typeof node.data.performance === 'number' ? node.data.performance : 0;
-          if (perf >= 95) color = '#10b981'; // Green
-          else if (perf >= 70) color = '#eab308'; // Yellow
-          else if (perf >= 20) color = '#f59e0b'; // Orange
-          else color = '#ef4444'; // Red
+          if (perf >= 95) color = '#10b981'; // Green - Excellent
+          else if (perf >= 80) color = '#3b82f6'; // Blue - Good
+          else if (perf >= 60) color = '#eab308'; // Yellow - Fair
+          else if (perf >= 40) color = '#f59e0b'; // Orange - Needs Attention
+          else color = '#ef4444'; // Red - Critical
         }
         
         return {
           ...node,
-          style: { 
-            ...node.style, 
-            background: color,
-            border: `2px solid ${color}`,
-            color: 'white'
+          data: {
+            ...node.data,
+            indicatorColor: color
           }
         };
       })
@@ -501,7 +503,7 @@ export default function CodeHealth() {
     );
   };
 
-  // Get score color based on lens and value
+  // Get score color based on lens and value (5-point scale)
   const getScoreColor = (node: any) => {
     let score = 0;
     
@@ -518,8 +520,9 @@ export default function CodeHealth() {
     }
     
     if (score >= 95) return 'text-green-500';
-    if (score >= 70) return 'text-yellow-500';
-    if (score >= 20) return 'text-orange-500';
+    if (score >= 80) return 'text-blue-500';
+    if (score >= 60) return 'text-yellow-500';
+    if (score >= 40) return 'text-orange-500';
     return 'text-red-500';
   };
 
@@ -579,8 +582,11 @@ export default function CodeHealth() {
 
       setNodes(layoutedNodes);
       setEdges(filteredEdges);
+      
+      // Auto-fit view when layout changes
+      setTimeout(() => fitView({ padding: 0.2, duration: 800 }), 100);
     }
-  }, [filteredNodes.length, filteredEdges.length, viewMode]);
+  }, [filteredNodes.length, filteredEdges.length, viewMode, fitView]);
 
   // Handle lens change
   const handleLensChange = (lens: LensType) => {
@@ -649,17 +655,23 @@ export default function CodeHealth() {
     }
   }, [starredNodes]);
 
-  // Custom node renderer with star button and proper handles
+  // Custom node renderer with star button, corner indicator, and proper handles
   const nodeTypes = {
     default: ({ data, id }: any) => {
       const isStarred = starredNodes.includes(id);
       const currentNode = nodes.find(n => n.id === id);
+      const indicatorColor = data.indicatorColor || '#94a3b8';
       
       return (
         <>
           <Handle type="target" position={Position.Left} />
           <div className="relative">
-            <div className="px-3 py-2 rounded bg-inherit border-inherit flex flex-col items-center gap-1">
+            <div className="px-3 py-2 rounded-xl bg-card text-card-foreground border-2 border-border shadow-sm flex flex-col items-center gap-1">
+              {/* Corner indicator */}
+              <div 
+                className="absolute top-0 right-0 w-6 h-6 rounded-bl-lg rounded-tr-lg"
+                style={{ backgroundColor: indicatorColor }}
+              />
               <div className="text-sm font-semibold">{data.label}</div>
               {data.type && (
                 <Badge variant="secondary" className="text-xs">
@@ -673,7 +685,7 @@ export default function CodeHealth() {
               )}
             </div>
             <button 
-              className="star-icon absolute -top-3 -right-3 bg-background rounded-full p-0.5 shadow-sm border border-border"
+              className="star-icon absolute -top-3 -right-3 bg-background rounded-full p-0.5 shadow-sm border border-border z-10"
               onClick={(e) => {
                 e.stopPropagation();
               }}
@@ -805,7 +817,17 @@ export default function CodeHealth() {
                     attributionPosition="bottom-right"
                   >
                     <Controls />
-                    <MiniMap />
+                    <MiniMap 
+                      nodeColor={(node) => node.data.indicatorColor || '#94a3b8'}
+                      maskColor="rgba(0, 0, 0, 0.6)"
+                      style={{
+                        width: 120,
+                        height: 80,
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                        border: '2px solid rgba(0, 0, 0, 0.1)',
+                        borderRadius: '12px'
+                      }}
+                    />
                     <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
                   </ReactFlow>
                 </div>

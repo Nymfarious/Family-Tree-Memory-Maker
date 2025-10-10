@@ -133,16 +133,20 @@ export function CodeHealthSidebar({
               <span>Excellent (95-100%)</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+              <span>Good (80-94%)</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-              <span>Good (70-94%)</span>
+              <span>Fair (60-79%)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-orange-500"></div>
-              <span>Fair (20-69%)</span>
+              <span>Needs Attention (40-59%)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-red-500"></div>
-              <span>Needs Work (&lt;20%)</span>
+              <span>Critical (&lt;40%)</span>
             </div>
           </div>
         </div>
