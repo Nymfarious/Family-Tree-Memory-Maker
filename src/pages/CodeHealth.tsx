@@ -816,11 +816,11 @@ export default function CodeHealth() {
                     fitView
                     attributionPosition="bottom-right"
                   >
-                    <Controls position="top-left" />
+                    <Controls />
                     <MiniMap 
                       nodeColor={(node) => node.data.indicatorColor || '#94a3b8'}
                       maskColor="rgba(0, 0, 0, 0.6)"
-                      position="top-left"
+                      position="bottom-left"
                       onClick={(event, position) => {
                         setCenter(position.x, position.y, { zoom: getZoom(), duration: 800 });
                       }}
@@ -832,10 +832,8 @@ export default function CodeHealth() {
                         borderRadius: '12px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                         marginLeft: '80px',
-                        cursor: 'crosshair',
-                        transition: 'all 0.2s ease'
+                        cursor: 'crosshair'
                       }}
-                      className="hover:scale-105"
                     />
                     <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
                   </ReactFlow>
