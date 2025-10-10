@@ -420,6 +420,16 @@ export default function Auth() {
                     </Button>
                   </div>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="remember-me"
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer">
+                    Remember me
+                  </Label>
+                </div>
                 {TURNSTILE_SITE_KEY && (
                   <div className="flex justify-center">
                     <div ref={turnstileSigninRef} />

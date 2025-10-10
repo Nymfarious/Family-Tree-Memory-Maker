@@ -18,42 +18,28 @@ import 'reactflow/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CodeHealthChat } from "@/components/code-health-chat";
+import { CodeHealthSidebar } from "@/components/code-health-sidebar";
+import { CodeHealthPriorityPanel } from "@/components/code-health-priority-panel";
 import { toast } from "sonner";
 import { 
   Activity, 
-  AlertTriangle, 
-  Zap, 
-  RefreshCw, 
-  Eye,
-  Code2,
-  FileCode,
-  Layers,
-  ArrowLeft
+  ArrowLeft,
+  Star,
+  Info
 } from "lucide-react";
 
 type LensType = 'quality' | 'risk' | 'performance';
+type ComponentType = 'core' | 'page' | 'component' | 'util' | 'backend' | 'button' | 'api';
 
-// Initial nodes representing project structure
+// Expanded nodes representing ALL project components
 const initialNodes: Node[] = [
-  // Core App Files
-  { 
-    id: 'app', 
-    type: 'default',
-    position: { x: 400, y: 50 }, 
-    data: { 
-      label: '📱 App.tsx',
-      type: 'core',
-      quality: 85,
-      risk: 'low',
-      performance: 90
-    },
-    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
-  },
+  // FRONTEND (Left side)
+  // Core Files
   { 
     id: 'main', 
-    position: { x: 400, y: 150 }, 
+    position: { x: 50, y: 50 }, 
     data: { 
       label: '🚀 main.tsx',
       type: 'core',
@@ -63,13 +49,26 @@ const initialNodes: Node[] = [
     },
     style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
   },
+  { 
+    id: 'app', 
+    type: 'default',
+    position: { x: 50, y: 120 }, 
+    data: { 
+      label: '📱 App.tsx',
+      type: 'core',
+      quality: 85,
+      risk: 'low',
+      performance: 90
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
   
   // Pages
   { 
     id: 'index', 
-    position: { x: 100, y: 250 }, 
+    position: { x: 50, y: 200 }, 
     data: { 
-      label: '🏠 Index',
+      label: '🏠 Index Page',
       type: 'page',
       quality: 80,
       risk: 'low',
@@ -79,9 +78,9 @@ const initialNodes: Node[] = [
   },
   { 
     id: 'auth', 
-    position: { x: 300, y: 250 }, 
+    position: { x: 50, y: 270 }, 
     data: { 
-      label: '🔐 Auth',
+      label: '🔐 Auth Page',
       type: 'page',
       quality: 75,
       risk: 'medium',
@@ -91,9 +90,9 @@ const initialNodes: Node[] = [
   },
   { 
     id: 'codehealth', 
-    position: { x: 500, y: 250 }, 
+    position: { x: 50, y: 340 }, 
     data: { 
-      label: '📊 CodeHealth',
+      label: '📊 CodeHealth Page',
       type: 'page',
       quality: 95,
       risk: 'low',
@@ -105,7 +104,7 @@ const initialNodes: Node[] = [
   // Components
   { 
     id: 'family-tree-app', 
-    position: { x: 100, y: 400 }, 
+    position: { x: 250, y: 200 }, 
     data: { 
       label: '🌳 FamilyTreeApp',
       type: 'component',
@@ -117,7 +116,7 @@ const initialNodes: Node[] = [
   },
   { 
     id: 'circular-tree', 
-    position: { x: 300, y: 400 }, 
+    position: { x: 250, y: 270 }, 
     data: { 
       label: '⭕ CircularTree',
       type: 'component',
@@ -129,7 +128,7 @@ const initialNodes: Node[] = [
   },
   { 
     id: 'person-card', 
-    position: { x: 500, y: 400 }, 
+    position: { x: 250, y: 340 }, 
     data: { 
       label: '👤 PersonCard',
       type: 'component',
@@ -139,11 +138,73 @@ const initialNodes: Node[] = [
     },
     style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
   },
-  
-  // Utils & Edge Functions
+  { 
+    id: 'tree-list', 
+    position: { x: 250, y: 410 }, 
+    data: { 
+      label: '📋 TreeList',
+      type: 'component',
+      quality: 82,
+      risk: 'low',
+      performance: 85
+    },
+    style: { background: '#3b82f6', color: 'white', border: '2px solid #2563eb' }
+  },
+  { 
+    id: 'code-health-chat', 
+    position: { x: 250, y: 480 }, 
+    data: { 
+      label: '💬 CodeHealthChat',
+      type: 'component',
+      quality: 88,
+      risk: 'low',
+      performance: 90
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
+
+  // Buttons (UI Elements)
+  { 
+    id: 'btn-signin', 
+    position: { x: 450, y: 270 }, 
+    data: { 
+      label: '🔘 Sign In Button',
+      type: 'button',
+      quality: 85,
+      risk: 'low',
+      performance: 95
+    },
+    style: { background: '#06b6d4', color: 'white', border: '2px solid #0891b2' }
+  },
+  { 
+    id: 'btn-analyze', 
+    position: { x: 450, y: 340 }, 
+    data: { 
+      label: '🔘 Analyze Button',
+      type: 'button',
+      quality: 90,
+      risk: 'low',
+      performance: 92
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
+  { 
+    id: 'btn-upload', 
+    position: { x: 450, y: 410 }, 
+    data: { 
+      label: '🔘 Upload Button',
+      type: 'button',
+      quality: 78,
+      risk: 'medium',
+      performance: 80
+    },
+    style: { background: '#eab308', color: 'white', border: '2px solid #ca8a04' }
+  },
+
+  // Utils
   { 
     id: 'gedcom-parser', 
-    position: { x: 150, y: 550 }, 
+    position: { x: 450, y: 50 }, 
     data: { 
       label: '📝 GEDCOM Parser',
       type: 'util',
@@ -154,10 +215,10 @@ const initialNodes: Node[] = [
     style: { background: '#8b5cf6', color: 'white', border: '2px solid #7c3aed' }
   },
   { 
-    id: 'cloud-storage', 
-    position: { x: 350, y: 550 }, 
+    id: 'cloud-storage-util', 
+    position: { x: 450, y: 120 }, 
     data: { 
-      label: '☁️ CloudStorage',
+      label: '☁️ CloudStorage Utils',
       type: 'util',
       quality: 85,
       risk: 'low',
@@ -166,30 +227,158 @@ const initialNodes: Node[] = [
     style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
   },
   { 
-    id: 'edge-functions', 
-    position: { x: 550, y: 550 }, 
+    id: 'storage-util', 
+    position: { x: 450, y: 190 }, 
     data: { 
-      label: '⚡ Edge Functions',
+      label: '💾 Storage Utils',
+      type: 'util',
+      quality: 88,
+      risk: 'low',
+      performance: 92
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
+
+  // BACKEND (Right side)
+  // Edge Functions / APIs
+  { 
+    id: 'api-chat', 
+    position: { x: 650, y: 50 }, 
+    data: { 
+      label: '⚡ Code Health Chat API',
+      type: 'api',
+      quality: 92,
+      risk: 'low',
+      performance: 88
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
+  { 
+    id: 'api-transcribe', 
+    position: { x: 650, y: 120 }, 
+    data: { 
+      label: '⚡ Transcribe API',
+      type: 'api',
+      quality: 85,
+      risk: 'low',
+      performance: 85
+    },
+    style: { background: '#3b82f6', color: 'white', border: '2px solid #2563eb' }
+  },
+  { 
+    id: 'api-dropbox', 
+    position: { x: 650, y: 190 }, 
+    data: { 
+      label: '⚡ Dropbox Upload API',
+      type: 'api',
+      quality: 80,
+      risk: 'medium',
+      performance: 75
+    },
+    style: { background: '#eab308', color: 'white', border: '2px solid #ca8a04' }
+  },
+  { 
+    id: 'api-google', 
+    position: { x: 650, y: 260 }, 
+    data: { 
+      label: '⚡ Google Drive API',
+      type: 'api',
+      quality: 82,
+      risk: 'medium',
+      performance: 78
+    },
+    style: { background: '#eab308', color: 'white', border: '2px solid #ca8a04' }
+  },
+  { 
+    id: 'api-ai-insights', 
+    position: { x: 650, y: 330 }, 
+    data: { 
+      label: '⚡ AI Insights API',
+      type: 'api',
+      quality: 88,
+      risk: 'low',
+      performance: 85
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
+
+  // Backend Services
+  { 
+    id: 'backend-auth', 
+    position: { x: 850, y: 100 }, 
+    data: { 
+      label: '🔒 Auth Service',
+      type: 'backend',
+      quality: 90,
+      risk: 'low',
+      performance: 95
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
+  { 
+    id: 'backend-db', 
+    position: { x: 850, y: 180 }, 
+    data: { 
+      label: '🗄️ Database',
       type: 'backend',
       quality: 88,
       risk: 'low',
       performance: 85
     },
     style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
-  }
+  },
+  { 
+    id: 'backend-storage', 
+    position: { x: 850, y: 260 }, 
+    data: { 
+      label: '📦 File Storage',
+      type: 'backend',
+      quality: 85,
+      risk: 'low',
+      performance: 90
+    },
+    style: { background: '#10b981', color: 'white', border: '2px solid #059669' }
+  },
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: 'main', target: 'app', animated: true },
-  { id: 'e2-3', source: 'app', target: 'index' },
-  { id: 'e2-4', source: 'app', target: 'auth' },
-  { id: 'e2-5', source: 'app', target: 'codehealth' },
-  { id: 'e3-6', source: 'index', target: 'family-tree-app' },
-  { id: 'e6-7', source: 'family-tree-app', target: 'circular-tree' },
-  { id: 'e6-8', source: 'family-tree-app', target: 'person-card' },
-  { id: 'e6-9', source: 'family-tree-app', target: 'gedcom-parser' },
-  { id: 'e6-10', source: 'family-tree-app', target: 'cloud-storage' },
-  { id: 'e10-11', source: 'cloud-storage', target: 'edge-functions', animated: true }
+  // Core flow
+  { id: 'e1', source: 'main', target: 'app', animated: true },
+  { id: 'e2', source: 'app', target: 'index' },
+  { id: 'e3', source: 'app', target: 'auth' },
+  { id: 'e4', source: 'app', target: 'codehealth' },
+  
+  // Components
+  { id: 'e5', source: 'index', target: 'family-tree-app' },
+  { id: 'e6', source: 'family-tree-app', target: 'circular-tree' },
+  { id: 'e7', source: 'family-tree-app', target: 'person-card' },
+  { id: 'e8', source: 'family-tree-app', target: 'tree-list' },
+  { id: 'e9', source: 'codehealth', target: 'code-health-chat' },
+  
+  // Buttons
+  { id: 'e10', source: 'auth', target: 'btn-signin' },
+  { id: 'e11', source: 'codehealth', target: 'btn-analyze' },
+  { id: 'e12', source: 'family-tree-app', target: 'btn-upload' },
+  
+  // Utils
+  { id: 'e13', source: 'family-tree-app', target: 'gedcom-parser' },
+  { id: 'e14', source: 'family-tree-app', target: 'cloud-storage-util' },
+  { id: 'e15', source: 'family-tree-app', target: 'storage-util' },
+  
+  // Backend connections
+  { id: 'e16', source: 'code-health-chat', target: 'api-chat', animated: true },
+  { id: 'e17', source: 'code-health-chat', target: 'api-transcribe' },
+  { id: 'e18', source: 'cloud-storage-util', target: 'api-dropbox' },
+  { id: 'e19', source: 'cloud-storage-util', target: 'api-google' },
+  { id: 'e20', source: 'family-tree-app', target: 'api-ai-insights' },
+  
+  // Backend services
+  { id: 'e21', source: 'api-chat', target: 'backend-auth' },
+  { id: 'e22', source: 'api-transcribe', target: 'backend-auth' },
+  { id: 'e23', source: 'api-dropbox', target: 'backend-storage', animated: true },
+  { id: 'e24', source: 'api-google', target: 'backend-storage', animated: true },
+  { id: 'e25', source: 'auth', target: 'backend-auth', animated: true },
+  { id: 'e26', source: 'family-tree-app', target: 'backend-db', animated: true },
 ];
 
 export default function CodeHealth() {
@@ -198,6 +387,10 @@ export default function CodeHealth() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [activeLens, setActiveLens] = useState<LensType>('quality');
   const [analyzing, setAnalyzing] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState<ComponentType[]>([
+    'core', 'page', 'component', 'util', 'backend', 'button', 'api'
+  ]);
+  const [starredNodes, setStarredNodes] = useState<string[]>([]);
   const [selectedNode, setSelectedNode] = useState<{
     id: string;
     label: string;
@@ -221,18 +414,31 @@ export default function CodeHealth() {
     [setEdges],
   );
 
+  // Filter nodes based on selected types
+  const filteredNodes = nodes.filter(node => 
+    selectedTypes.includes(node.data.type as ComponentType)
+  );
+
+  const filteredEdges = edges.filter(edge => {
+    const sourceNode = nodes.find(n => n.id === edge.source);
+    const targetNode = nodes.find(n => n.id === edge.target);
+    return sourceNode && targetNode && 
+           selectedTypes.includes(sourceNode.data.type) && 
+           selectedTypes.includes(targetNode.data.type);
+  });
+
   // Apply color-coding based on active lens
   const applyLensColors = useCallback((lens: LensType) => {
     setNodes((nds) => 
       nds.map((node) => {
-        let color = '#94a3b8'; // default gray
+        let color = '#94a3b8';
         
         if (lens === 'quality') {
           const quality = typeof node.data.quality === 'number' ? node.data.quality : 0;
-          if (quality >= 85) color = '#10b981'; // green
-          else if (quality >= 70) color = '#3b82f6'; // blue
-          else if (quality >= 50) color = '#f59e0b'; // orange
-          else color = '#ef4444'; // red
+          if (quality >= 85) color = '#10b981';
+          else if (quality >= 70) color = '#3b82f6';
+          else if (quality >= 50) color = '#f59e0b';
+          else color = '#ef4444';
         } else if (lens === 'risk') {
           const risk = node.data.risk || 'unknown';
           if (risk === 'low') color = '#10b981';
@@ -258,6 +464,22 @@ export default function CodeHealth() {
       })
     );
   }, [setNodes]);
+
+  const handleTypeToggle = (type: ComponentType) => {
+    setSelectedTypes(prev => 
+      prev.includes(type) 
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  const toggleStar = (nodeId: string) => {
+    setStarredNodes(prev => 
+      prev.includes(nodeId)
+        ? prev.filter(id => id !== nodeId)
+        : [...prev, nodeId]
+    );
+  };
 
   // Handle lens change
   const handleLensChange = (lens: LensType) => {
@@ -286,16 +508,44 @@ export default function CodeHealth() {
   };
 
   const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
-    setSelectedNode({
-      id: node.id,
-      label: node.data.label,
-      type: node.data.type,
-      quality: node.data.quality,
-      risk: node.data.risk,
-      performance: node.data.performance
-    });
-    toast(`Selected: ${node.data.label}`);
-  }, []);
+    // Check if clicking on star icon (rough position check)
+    const target = event.target as HTMLElement;
+    if (target.closest('.star-icon')) {
+      toggleStar(node.id);
+      toast(starredNodes.includes(node.id) ? '⭐ Removed from priorities' : '⭐ Added to priorities');
+    } else {
+      setSelectedNode({
+        id: node.id,
+        label: node.data.label,
+        type: node.data.type,
+        quality: node.data.quality,
+        risk: node.data.risk,
+        performance: node.data.performance
+      });
+      toast(`Selected: ${node.data.label}`);
+    }
+  }, [starredNodes]);
+
+  // Custom node renderer with star button
+  const nodeTypes = {
+    default: ({ data }: any) => (
+      <div className="relative group">
+        <div className="px-3 py-2 rounded bg-inherit border-inherit">
+          {data.label}
+        </div>
+        <button 
+          className="star-icon absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <Star 
+            className={`h-4 w-4 ${starredNodes.includes(data.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
+          />
+        </button>
+      </div>
+    )
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -312,108 +562,63 @@ export default function CodeHealth() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <Activity className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-primary">Code Health Monitor</h1>
+              <div>
+                <h1 className="text-2xl font-bold text-primary">Code Health Monitor</h1>
+                <p className="text-xs text-muted-foreground">Visualize & analyze your application architecture</p>
+              </div>
               <Badge variant="outline" className="text-xs">Beta</Badge>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleAnalyze} 
-                disabled={analyzing}
-                className="relative"
-              >
-                <RefreshCw className={`mr-2 h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />
-                {analyzing ? 'Analyzing...' : 'Analyze'}
-              </Button>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6">
+        {/* Instructions */}
+        <Alert className="mb-6">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Getting Started:</strong> Click the <strong>Analyze</strong> button in the sidebar to scan your codebase. 
+            Use the filters to focus on specific component types. Click any node to ask questions or click the star to add it to your priority list.
+            Scores represent quality completion (85-100% = excellent, below 50% needs work).
+          </AlertDescription>
+        </Alert>
+
         <div className="grid gap-6 lg:grid-cols-4">
-          {/* Control Panel */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                View Lenses
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Tabs value={activeLens} onValueChange={(v) => handleLensChange(v as LensType)}>
-                <TabsList className="grid w-full grid-cols-1 gap-2">
-                  <TabsTrigger value="quality" className="flex items-center gap-2">
-                    <Code2 className="h-4 w-4" />
-                    Quality
-                  </TabsTrigger>
-                  <TabsTrigger value="risk" className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Risk
-                  </TabsTrigger>
-                  <TabsTrigger value="performance" className="flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    Performance
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <div className="space-y-3 pt-4 border-t">
-                <h3 className="text-sm font-semibold">Legend</h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                    <span>Excellent (85-100)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                    <span>Good (70-84)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full bg-orange-500"></div>
-                    <span>Fair (50-69)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                    <span>Poor (&lt;50)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-4 border-t">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <Layers className="h-4 w-4" />
-                  Component Types
-                </h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <FileCode className="h-3 w-3" />
-                    <span>Core • Pages • Components</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Code2 className="h-3 w-3" />
-                    <span>Utils • Backend</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <CodeHealthSidebar
+              activeLens={activeLens}
+              onLensChange={handleLensChange}
+              analyzing={analyzing}
+              onAnalyze={handleAnalyze}
+              selectedTypes={selectedTypes}
+              onTypeToggle={handleTypeToggle}
+            />
+          </div>
 
           {/* Diagram */}
           <Card className="lg:col-span-3">
             <CardHeader>
-              <CardTitle>Project Architecture Diagram</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Application Architecture</span>
+                <div className="flex gap-2 text-xs text-muted-foreground">
+                  <span>← Frontend</span>
+                  <span>•</span>
+                  <span>Backend →</span>
+                </div>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div style={{ height: '700px', width: '100%' }} className="border rounded-lg">
+              <div style={{ height: '700px', width: '100%' }} className="border rounded-lg bg-muted/20">
                 <ReactFlow
-                  nodes={nodes}
-                  edges={edges}
+                  nodes={filteredNodes}
+                  edges={filteredEdges}
                   onNodesChange={onNodesChange}
                   onEdgesChange={onEdgesChange}
                   onConnect={onConnect}
                   onNodeClick={onNodeClick}
+                  nodeTypes={nodeTypes}
                   fitView
                   attributionPosition="bottom-right"
                 >
@@ -425,6 +630,12 @@ export default function CodeHealth() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Priority Panel */}
+        <CodeHealthPriorityPanel 
+          starredNodes={starredNodes}
+          allNodes={nodes}
+        />
 
         {/* Chat Interface */}
         <CodeHealthChat 
