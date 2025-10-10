@@ -390,7 +390,7 @@ const initialEdges: Edge[] = [
 
 export default function CodeHealth() {
   const navigate = useNavigate();
-  const { fitView } = useReactFlow();
+  const { fitView, setCenter, getZoom } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [activeLens, setActiveLens] = useState<LensType>('quality');
@@ -816,17 +816,26 @@ export default function CodeHealth() {
                     fitView
                     attributionPosition="bottom-right"
                   >
-                    <Controls />
+                    <Controls position="top-left" />
                     <MiniMap 
                       nodeColor={(node) => node.data.indicatorColor || '#94a3b8'}
                       maskColor="rgba(0, 0, 0, 0.6)"
-                      style={{
-                        width: 120,
-                        height: 80,
-                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                        border: '2px solid rgba(0, 0, 0, 0.1)',
-                        borderRadius: '12px'
+                      position="top-left"
+                      onClick={(event, position) => {
+                        setCenter(position.x, position.y, { zoom: getZoom(), duration: 800 });
                       }}
+                      style={{
+                        width: 160,
+                        height: 120,
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '2px solid hsl(var(--border))',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        marginLeft: '80px',
+                        cursor: 'crosshair',
+                        transition: 'all 0.2s ease'
+                      }}
+                      className="hover:scale-105"
                     />
                     <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
                   </ReactFlow>
