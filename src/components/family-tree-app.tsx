@@ -387,7 +387,7 @@ export function FamilyTreeApp() {
                   }}
                   variant="ghost" 
                   size="icon" 
-                  title="Save Local (Right-click for Save As)"
+                  title="Save As (Right-click for custom filename)"
                 >
                   <Save className="h-4 w-4" />
                 </Button>

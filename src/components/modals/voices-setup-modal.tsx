@@ -2,7 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Volume2, Play } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Volume2, Play, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,7 +15,11 @@ interface VoicesSetupModalProps {
 export function VoicesSetupModal({ open, onClose }: VoicesSetupModalProps) {
   const [aiResponseVoice, setAiResponseVoice] = useState("alloy");
   const [transcriptionVoice, setTranscriptionVoice] = useState("echo");
+  const [aiResponseVolume, setAiResponseVolume] = useState(0.8);
+  const [transcriptionVolume, setTranscriptionVolume] = useState(0.8);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const { toast } = useToast();
+  const sampleText = "The quick brown fox jumps over the lazy dog";
 
   useEffect(() => {
     const saved = localStorage.getItem('voice-preferences');
@@ -22,6 +27,8 @@ export function VoicesSetupModal({ open, onClose }: VoicesSetupModalProps) {
       const prefs = JSON.parse(saved);
       setAiResponseVoice(prefs.aiResponseVoice || "alloy");
       setTranscriptionVoice(prefs.transcriptionVoice || "echo");
+      setAiResponseVolume(prefs.aiResponseVolume || 0.8);
+      setTranscriptionVolume(prefs.transcriptionVolume || 0.8);
     }
   }, [open]);
 
@@ -29,6 +36,8 @@ export function VoicesSetupModal({ open, onClose }: VoicesSetupModalProps) {
     const preferences = {
       aiResponseVoice,
       transcriptionVoice,
+      aiResponseVolume,
+      transcriptionVolume,
     };
     localStorage.setItem('voice-preferences', JSON.stringify(preferences));
     toast({
@@ -38,11 +47,34 @@ export function VoicesSetupModal({ open, onClose }: VoicesSetupModalProps) {
     onClose();
   };
 
-  const handlePreview = (voice: string) => {
-    toast({
-      title: "Voice Preview",
-      description: `Playing preview for ${voice} voice...`,
-    });
+  const handlePreview = async (voice: string, volume: number) => {
+    setPlayingVoice(voice);
+    try {
+      const utterance = new SpeechSynthesisUtterance(sampleText);
+      utterance.voice = speechSynthesis.getVoices().find(v => v.name.toLowerCase().includes(voice)) || null;
+      utterance.volume = volume;
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      
+      utterance.onend = () => setPlayingVoice(null);
+      utterance.onerror = () => {
+        setPlayingVoice(null);
+        toast({
+          title: "Preview Error",
+          description: "Unable to play voice preview. Using system default voice.",
+          variant: "destructive",
+        });
+      };
+      
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      setPlayingVoice(null);
+      toast({
+        title: "Preview Error",
+        description: "Voice preview is not supported in this browser.",
+        variant: "destructive",
+      });
+    }
   };
 
   const voiceOptions = [
@@ -83,10 +115,26 @@ export function VoicesSetupModal({ open, onClose }: VoicesSetupModalProps) {
               <Button 
                 size="icon" 
                 variant="outline"
-                onClick={() => handlePreview(aiResponseVoice)}
+                onClick={() => handlePreview(aiResponseVoice, aiResponseVolume)}
+                disabled={playingVoice === aiResponseVoice}
               >
-                <Play className="h-4 w-4" />
+                {playingVoice === aiResponseVoice ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
               </Button>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ai-volume" className="text-xs text-muted-foreground">Volume</Label>
+              <Slider
+                id="ai-volume"
+                value={[aiResponseVolume]}
+                onValueChange={([value]) => setAiResponseVolume(value)}
+                max={1}
+                step={0.1}
+                className="w-full"
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               Voice used when AI reads responses aloud
@@ -111,10 +159,26 @@ export function VoicesSetupModal({ open, onClose }: VoicesSetupModalProps) {
               <Button 
                 size="icon" 
                 variant="outline"
-                onClick={() => handlePreview(transcriptionVoice)}
+                onClick={() => handlePreview(transcriptionVoice, transcriptionVolume)}
+                disabled={playingVoice === transcriptionVoice}
               >
-                <Play className="h-4 w-4" />
+                {playingVoice === transcriptionVoice ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
               </Button>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="transcription-volume" className="text-xs text-muted-foreground">Volume</Label>
+              <Slider
+                id="transcription-volume"
+                value={[transcriptionVolume]}
+                onValueChange={([value]) => setTranscriptionVolume(value)}
+                max={1}
+                step={0.1}
+                className="w-full"
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               Voice used to read back transcribed text

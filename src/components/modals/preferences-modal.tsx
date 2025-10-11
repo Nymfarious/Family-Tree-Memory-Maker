@@ -140,7 +140,7 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
       
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+          <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
             <DialogTitle>Preferences</DialogTitle>
           </DialogHeader>
           
@@ -174,11 +174,11 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
               <SelectContent>
                 <SelectItem value="dark">Dark</SelectItem>
                 <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="system">Auto (System)</SelectItem>
+                <SelectItem value="system">AI Custom Theme (Coming Soon)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Choose your preferred theme or sync with system settings.
+              AI Custom Theme uses intelligent color generation for unique combinations.
             </p>
           </div>
 
@@ -207,7 +207,7 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
             <CollapsibleContent className="space-y-4">
             
             <div className="space-y-2">
-              <Label htmlFor="max-gen" className="text-xs text-muted-foreground">Maximum Generations</Label>
+              <Label htmlFor="max-gen" className="text-xs text-muted-foreground">Maximum Generations (Total Display Limit)</Label>
               <Select 
                 value={String(treeFilters.maxGenerations)} 
                 onValueChange={(val) => handleTreeFilterChange('maxGenerations', parseInt(val))}
@@ -224,6 +224,9 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
                   <SelectItem value="20">20 Generations</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Sets the overall display limit. Maternal and Paternal line controls below allow fine-tuning within this limit.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -331,9 +334,12 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
             </CollapsibleContent>
           </Collapsible>
 
-          <div className="space-y-4">
-            <Label>Person Card Display</Label>
-            <div className="space-y-3">
+          <Collapsible defaultOpen={true} className="space-y-4 pt-4 border-t border-border">
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <Label className="text-sm font-medium cursor-pointer">Person Card Display</Label>
+              <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="show-birth"
@@ -374,8 +380,15 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
                 />
                 <Label htmlFor="show-occupation" className="font-normal cursor-pointer">Show Occupation</Label>
               </div>
-            </div>
-          </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="show-custom"
+                  disabled
+                />
+                <Label htmlFor="show-custom" className="font-normal cursor-pointer text-muted-foreground">Show Custom Fields (Coming Soon)</Label>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Family Crest/Emblem Upload Placeholder */}
           <div className="space-y-3">
