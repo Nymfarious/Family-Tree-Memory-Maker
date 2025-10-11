@@ -18,6 +18,7 @@ interface DevToolsProps {
   showRoadmap: boolean;
   onToggleRoadmap: () => void;
   onResetTreeData?: () => void;
+  onLoadTestData?: (content: string, filename: string) => void;
 }
 
 interface DevNote {
@@ -37,7 +38,7 @@ interface TemporaryInvite {
   created_at: string;
 }
 
-export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onToggleRoadmap, onResetTreeData }: DevToolsProps) {
+export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onToggleRoadmap, onResetTreeData, onLoadTestData }: DevToolsProps) {
   const [open, setOpen] = useState(false);
   const [devNotes, setDevNotes] = useState("");
   const [savedNotes, setSavedNotes] = useState<DevNote[]>([]);
@@ -356,11 +357,30 @@ export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onTogg
     setOpen(false);
   };
 
-  const handleTestData = () => {
-    toast({
-      title: "Test Data Loaded",
-      description: "Sample GEDCOM bindings populated for testing.",
-    });
+  const handleTestData = async () => {
+    try {
+      const response = await fetch('/sample.ged');
+      if (!response.ok) {
+        throw new Error('Failed to fetch sample GEDCOM file');
+      }
+      const content = await response.text();
+      
+      if (onLoadTestData) {
+        onLoadTestData(content, 'sample.ged');
+      }
+      
+      toast({
+        title: "Test Data Loaded",
+        description: "Sample GEDCOM file has been loaded successfully.",
+      });
+    } catch (error) {
+      console.error('Error loading test data:', error);
+      toast({
+        title: "Failed to Load Test Data",
+        description: error instanceof Error ? error.message : "Could not load sample GEDCOM file.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (checkingAdmin && open) {

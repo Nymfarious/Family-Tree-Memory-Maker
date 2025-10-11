@@ -303,6 +303,24 @@ export function FamilyTreeApp() {
           setFocus(null);
           StorageUtils.saveLocal("ft:ged-last", null);
         }}
+        onLoadTestData={(content, filename) => {
+          try {
+            const parsed = parseGedcom(content);
+            setGed(parsed);
+            setMaxGenerations(7);
+            StorageUtils.saveLocal("ft:ged-last", parsed);
+            toast({
+              title: "Test Data Loaded",
+              description: `Loaded ${Object.keys(parsed.people).length} people from "${filename}".`,
+            });
+          } catch (error) {
+            toast({
+              title: "Failed to Parse Test Data",
+              description: "Could not parse the sample GEDCOM file.",
+              variant: "destructive",
+            });
+          }
+        }}
       />
 
       {/* Header */}
