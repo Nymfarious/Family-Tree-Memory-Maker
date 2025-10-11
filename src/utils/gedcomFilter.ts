@@ -6,7 +6,7 @@ import type { GedcomData, Person, Family } from "@/types/gedcom";
 export function filterGedcomByGenerations(
   data: GedcomData,
   maxGenerations: number,
-  fromYear: number = 2021
+  fromYear: number = 2026
 ): GedcomData {
   const includedPeople = new Set<string>();
   const includedFamilies = new Set<string>();

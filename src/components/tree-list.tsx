@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { PersonCard } from "./person-card";
 import type { Person, Family } from "@/types/gedcom";
 import { cn } from "@/lib/utils";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -16,12 +15,11 @@ interface TreeListProps {
   onFocus?: (pid: string) => void;
 }
 
-type LineageFilter = 'both' | 'maternal' | 'paternal';
 type SortOrder = 'asc' | 'desc';
 
 export function TreeList({ roots, people, childToParents, families, onFocus }: TreeListProps) {
-  const [showLineage, setShowLineage] = useState(true);
-  const [lineageFilter, setLineageFilter] = useState<LineageFilter>('both');
+  const [showMaternal, setShowMaternal] = useState(true);
+  const [showPaternal, setShowPaternal] = useState(true);
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [centerPerson, setCenterPerson] = useState<string>(roots[0] || '');
   const [expandedSide, setExpandedSide] = useState<'maternal' | 'paternal' | null>(null);
@@ -44,12 +42,17 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
     return map;
   }, [families]);
 
-  // Get maternal and paternal lines - consecutive generations from center person
+  // Get maternal and paternal lines - consecutive generations from center person (default 6 generations)
   const { maternalLine, paternalLine } = useMemo(() => {
     const maternal: string[] = [];
     const paternal: string[] = [];
 
     if (!centerPerson) return { maternalLine: maternal, paternalLine: paternal };
+
+    // Get generation limits from preferences
+    const treeFilters = localStorage.getItem('tree-filter-preferences');
+    const maxMaternalGens = treeFilters ? JSON.parse(treeFilters).maternalGenerations || 6 : 6;
+    const maxPaternalGens = treeFilters ? JSON.parse(treeFilters).paternalGenerations || 6 : 6;
 
     // Find parents of center person
     const familyId = Object.keys(families).find(fid => {
@@ -63,9 +66,9 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
     const motherId = family.wife;
     const fatherId = family.husb;
 
-    // Build consecutive generation lineage (parents, then grandparents, etc.)
-    const buildLineage = (personId: string, lineage: string[]) => {
-      if (!personId) return;
+    // Build consecutive generation lineage (parents, then grandparents, etc.) up to max generations
+    const buildLineage = (personId: string, lineage: string[], maxGens: number, currentGen: number = 0) => {
+      if (!personId || currentGen >= maxGens) return;
       
       // Add this person first
       lineage.push(personId);
@@ -77,18 +80,17 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
       });
       
       if (personFamilyId) {
-        const parentFamily = families[personFamilyId];
         const parents = childToParents[personId] || [];
         
         // Add parents in order, then recurse for each
         parents.forEach(parentId => {
-          buildLineage(parentId, lineage);
+          buildLineage(parentId, lineage, maxGens, currentGen + 1);
         });
       }
     };
 
-    if (motherId) buildLineage(motherId, maternal);
-    if (fatherId) buildLineage(fatherId, paternal);
+    if (motherId) buildLineage(motherId, maternal, maxMaternalGens);
+    if (fatherId) buildLineage(fatherId, paternal, maxPaternalGens);
 
     return { maternalLine: maternal, paternalLine: paternal };
   }, [centerPerson, childToParents, families]);
@@ -148,35 +150,31 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
           </div>
         </div>
 
-        {/* Show Lineage Toggle and Filter */}
+        {/* Lineage Filter Toggles */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <Button
-            variant={showLineage ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowLineage(!showLineage)}
-          >
-            {showLineage ? "Hide" : "Show"} Lineage
-          </Button>
-
-          {showLineage && (
-            <div className="flex-1 space-y-2">
-              <Label className="text-sm font-medium">Filter</Label>
-              <RadioGroup value={lineageFilter} onValueChange={(value) => setLineageFilter(value as LineageFilter)} className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="both" id="list-both" />
-                  <Label htmlFor="list-both" className="font-normal cursor-pointer">Both</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="maternal" id="list-maternal" />
-                  <Label htmlFor="list-maternal" className="font-normal cursor-pointer">Maternal</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="paternal" id="list-paternal" />
-                  <Label htmlFor="list-paternal" className="font-normal cursor-pointer">Paternal</Label>
-                </div>
-              </RadioGroup>
+          <Label className="text-sm font-medium">Show Lineage:</Label>
+          <div className="flex gap-6">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="show-maternal"
+                checked={showMaternal}
+                onChange={(e) => setShowMaternal(e.target.checked)}
+                className="w-4 h-4 rounded border-border"
+              />
+              <Label htmlFor="show-maternal" className="font-normal cursor-pointer">Maternal</Label>
             </div>
-          )}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="show-paternal"
+                checked={showPaternal}
+                onChange={(e) => setShowPaternal(e.target.checked)}
+                className="w-4 h-4 rounded border-border"
+              />
+              <Label htmlFor="show-paternal" className="font-normal cursor-pointer">Paternal</Label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -195,7 +193,7 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
         </div>
       )}
 
-      {showLineage && lineageFilter === 'both' && (
+      {(showMaternal || showPaternal) && (
         <div className="space-y-6">
           {/* Navigation Arrows for Expanded View */}
           {expandedSide && (
@@ -230,52 +228,56 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
           {expandedSide === null ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Maternal Line */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-genealogy-female flex items-center gap-2 border-b border-border pb-2">
-                    <span className="w-3 h-3 rounded-full bg-genealogy-female"></span>
-                    Maternal Line
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setExpandedSide('maternal')}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+              {showMaternal && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-genealogy-female flex items-center gap-2 border-b border-border pb-2">
+                      <span className="w-3 h-3 rounded-full bg-genealogy-female"></span>
+                      Maternal Line
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedSide('maternal')}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <ul className="space-y-4">
+                    {maternalLine.length > 0 ? (
+                      (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No maternal lineage data</p>
+                    )}
+                  </ul>
                 </div>
-                <ul className="space-y-4">
-                  {maternalLine.length > 0 ? (
-                    (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
-                  ) : (
-                    <p className="text-muted-foreground text-sm">No maternal lineage data</p>
-                  )}
-                </ul>
-              </div>
+              )}
 
               {/* Paternal Line */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-genealogy-male flex items-center gap-2 border-b border-border pb-2">
-                    <span className="w-3 h-3 rounded-full bg-genealogy-male"></span>
-                    Paternal Line
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setExpandedSide('paternal')}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+              {showPaternal && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-genealogy-male flex items-center gap-2 border-b border-border pb-2">
+                      <span className="w-3 h-3 rounded-full bg-genealogy-male"></span>
+                      Paternal Line
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedSide('paternal')}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <ul className="space-y-4">
+                    {paternalLine.length > 0 ? (
+                      (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No paternal lineage data</p>
+                    )}
+                  </ul>
                 </div>
-                <ul className="space-y-4">
-                  {paternalLine.length > 0 ? (
-                    (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))
-                  ) : (
-                    <p className="text-muted-foreground text-sm">No paternal lineage data</p>
-                  )}
-                </ul>
-              </div>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -304,25 +306,6 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
         </div>
       )}
 
-      {showLineage && lineageFilter === 'maternal' && (
-        <ul className="space-y-4">
-          {maternalLine.length > 0 ? (
-            (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
-          ) : (
-            <p className="text-muted-foreground">No maternal lineage data</p>
-          )}
-        </ul>
-      )}
-
-      {showLineage && lineageFilter === 'paternal' && (
-        <ul className="space-y-4">
-          {paternalLine.length > 0 ? (
-            (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))
-          ) : (
-            <p className="text-muted-foreground">No paternal lineage data</p>
-          )}
-        </ul>
-      )}
     </div>
   );
 }

@@ -15,12 +15,13 @@ import { ChangeLogDrawer } from "@/components/drawers/changelog-drawer";
 import { DevTools } from "@/components/dev-tools";
 import { TreeList } from "@/components/tree-list";
 import { CircularTreeView } from "@/components/circular-tree-view";
+import { MapTreeView } from "@/components/map-tree-view";
 import { TaskList } from "@/components/task-list";
 import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut, Activity } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut, Activity, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function FamilyTreeApp() {
@@ -468,7 +469,7 @@ export function FamilyTreeApp() {
               <CardContent>
                 {ged ? (
                   <Tabs defaultValue="list" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsList className="grid w-full grid-cols-3 mb-6">
                       <TabsTrigger value="list" className="flex items-center gap-2">
                         <TreePine className="h-4 w-4" />
                         List View
@@ -476,6 +477,10 @@ export function FamilyTreeApp() {
                       <TabsTrigger value="circular" className="flex items-center gap-2">
                         <Circle className="h-4 w-4" />
                         Circular View
+                      </TabsTrigger>
+                      <TabsTrigger value="map" className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Map View
                       </TabsTrigger>
                     </TabsList>
                     
@@ -502,6 +507,21 @@ export function FamilyTreeApp() {
                           people={ged.people}
                           childToParents={ged.childToParents}
                           families={ged.families}
+                          onFocus={setFocus}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="map" className="mt-0">
+                      <div className="space-y-4">
+                        <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border">
+                          <p className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            View your family tree locations on an interactive map. Displays birth and death places from your GEDCOM data.
+                          </p>
+                        </div>
+                        <MapTreeView
+                          people={ged.people}
                           onFocus={setFocus}
                         />
                       </div>

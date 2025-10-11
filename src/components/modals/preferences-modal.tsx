@@ -26,7 +26,9 @@ interface TreeFilterPreferences {
   timeFilter: 'all' | 'century' | 'decade' | 'generation';
   startYear?: number;
   endYear?: number;
-  generationSpan?: string; // e.g., 'greatest-generation', 'baby-boomer', 'gen-x', etc.
+  generationSpan?: string; // e.g., 'greatest-generation', 'baby-boomer', 'early-gen-x', 'late-gen-x', 'xennials', 'jones-generation', etc.
+  maternalGenerations: number;
+  paternalGenerations: number;
 }
 
 const DEFAULT_PREFERENCES: CardDisplayPreferences = {
@@ -40,6 +42,8 @@ const DEFAULT_PREFERENCES: CardDisplayPreferences = {
 const DEFAULT_TREE_FILTERS: TreeFilterPreferences = {
   maxGenerations: 12,
   timeFilter: 'all',
+  maternalGenerations: 6,
+  paternalGenerations: 6,
 };
 
 export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
@@ -199,9 +203,80 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
                 </SelectContent>
               </Select>
             </div>
+
+            {treeFilters.timeFilter === 'generation' && (
+              <div className="space-y-2">
+                <Label htmlFor="gen-span" className="text-xs text-muted-foreground">Generation Span</Label>
+                <Select 
+                  value={treeFilters.generationSpan || 'all'} 
+                  onValueChange={(val) => handleTreeFilterChange('generationSpan', val)}
+                >
+                  <SelectTrigger id="gen-span">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Generations</SelectItem>
+                    <SelectItem value="greatest-generation">Greatest Generation (1901-1927)</SelectItem>
+                    <SelectItem value="silent-generation">Silent Generation (1928-1945)</SelectItem>
+                    <SelectItem value="baby-boomer">Baby Boomers (1946-1964)</SelectItem>
+                    <SelectItem value="jones-generation">Jones Generation (1954-1965)</SelectItem>
+                    <SelectItem value="early-gen-x">Early Gen X (1965-1972)</SelectItem>
+                    <SelectItem value="late-gen-x">Late Gen X (1973-1980)</SelectItem>
+                    <SelectItem value="xennials">Xennials (1977-1983)</SelectItem>
+                    <SelectItem value="millennial">Millennials (1981-1996)</SelectItem>
+                    <SelectItem value="gen-z">Gen Z (1997-2012)</SelectItem>
+                    <SelectItem value="gen-alpha">Gen Alpha (2013+)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="maternal-gens" className="text-xs text-muted-foreground">Maternal Line Generations</Label>
+                <Select 
+                  value={String(treeFilters.maternalGenerations)} 
+                  onValueChange={(val) => handleTreeFilterChange('maternalGenerations', parseInt(val))}
+                >
+                  <SelectTrigger id="maternal-gens">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 Generations</SelectItem>
+                    <SelectItem value="4">4 Generations</SelectItem>
+                    <SelectItem value="5">5 Generations</SelectItem>
+                    <SelectItem value="6">6 Generations</SelectItem>
+                    <SelectItem value="7">7 Generations</SelectItem>
+                    <SelectItem value="8">8 Generations</SelectItem>
+                    <SelectItem value="10">10 Generations</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paternal-gens" className="text-xs text-muted-foreground">Paternal Line Generations</Label>
+                <Select 
+                  value={String(treeFilters.paternalGenerations)} 
+                  onValueChange={(val) => handleTreeFilterChange('paternalGenerations', parseInt(val))}
+                >
+                  <SelectTrigger id="paternal-gens">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 Generations</SelectItem>
+                    <SelectItem value="4">4 Generations</SelectItem>
+                    <SelectItem value="5">5 Generations</SelectItem>
+                    <SelectItem value="6">6 Generations</SelectItem>
+                    <SelectItem value="7">7 Generations</SelectItem>
+                    <SelectItem value="8">8 Generations</SelectItem>
+                    <SelectItem value="10">10 Generations</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             
             <p className="text-xs text-muted-foreground">
-              These filters help you focus on specific time periods or generational groups in large family trees.
+              These filters help you focus on specific time periods or generational groups in large family trees. Jones Generation and Xennials are micro-generations bridging Baby Boomers/Gen X and Gen X/Millennials respectively.
             </p>
           </div>
 
