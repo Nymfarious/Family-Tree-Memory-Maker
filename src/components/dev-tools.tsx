@@ -642,151 +642,162 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
                     })
                   )}
                 </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             </>
           )}
 
           <Separator />
 
           {/* Dev Notes with AI */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-warning" />
-              Dev Notes (AI-Powered)
-            </h3>
-            <Textarea
-              placeholder="Type or paste developer notes here... These will be summarized and timestamped."
-              value={devNotes}
-              onChange={(e) => setDevNotes(e.target.value)}
-              className="min-h-[120px] font-mono text-xs"
-            />
-            <Button 
-              size="sm" 
-              onClick={handleSummarizeNotes} 
-              disabled={isProcessing || !devNotes.trim()}
-              className="w-full"
-            >
-              {isProcessing ? "Processing..." : "Summarize & Save"}
-            </Button>
+          <Collapsible open={devNotesOpen} onOpenChange={setDevNotesOpen}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-warning" />
+                Dev Notes (AI-Powered)
+              </h3>
+              <ChevronDown className={`h-4 w-4 transition-transform ${devNotesOpen ? 'transform rotate-180' : ''}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3 space-y-3">
+              <Textarea
+                placeholder="Type or paste developer notes here... These will be summarized and timestamped."
+                value={devNotes}
+                onChange={(e) => setDevNotes(e.target.value)}
+                className="min-h-[120px] font-mono text-xs"
+              />
+              <Button 
+                size="sm" 
+                onClick={handleSummarizeNotes} 
+                disabled={isProcessing || !devNotes.trim()}
+                className="w-full"
+              >
+                {isProcessing ? "Processing..." : "Summarize & Save"}
+              </Button>
 
-            {savedNotes.length > 0 && (
-              <div className="space-y-2 mt-4 max-h-[300px] overflow-y-auto">
-                {savedNotes.map((note, idx) => (
-                  <div key={idx} className="p-3 rounded-lg border border-border bg-muted/20">
-                    <div className="text-xs text-muted-foreground mb-1">{note.timestamp}</div>
-                    <div className="text-sm">{note.summary}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+              {savedNotes.length > 0 && (
+                <div className="space-y-2 mt-4 max-h-[300px] overflow-y-auto">
+                  {savedNotes.map((note, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border border-border bg-muted/20">
+                      <div className="text-xs text-muted-foreground mb-1">{note.timestamp}</div>
+                      <div className="text-sm">{note.summary}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
 
           <Separator />
 
           {/* API Integrations */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Brain className="h-4 w-4" />
-              API Integrations
-            </h3>
-            <div className="space-y-3">
-              {/* Lovable AI */}
-              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-warning" />
-                    <span className="text-sm font-medium">Lovable AI (Dev Notes)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.lovableAI === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.lovableAI === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.lovableAI === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.lovableAI === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+          <Collapsible open={apiIntegrationsOpen} onOpenChange={setApiIntegrationsOpen}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                API Integrations
+              </h3>
+              <ChevronDown className={`h-4 w-4 transition-transform ${apiIntegrationsOpen ? 'transform rotate-180' : ''}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3">
+              <div className="space-y-3">
+                {/* Lovable AI */}
+                <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-warning" />
+                      <span className="text-sm font-medium">Lovable AI (Dev Notes)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.lovableAI === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.lovableAI === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.lovableAI === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.lovableAI === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                      </div>
                     </div>
                   </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{getStatusLabel(apiStatus.lovableAI)}</span>
+                    <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('lovableAI')}>
+                      Test
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.lovableAI)}</span>
-                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('lovableAI')}>
-                    Test
-                  </Button>
-                </div>
-              </div>
 
-              {/* Replicate */}
-              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Image className="h-4 w-4" />
-                    <span className="text-sm font-medium">Replicate (Image Gen)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.replicate === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.replicate === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.replicate === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.replicate === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                {/* Replicate */}
+                <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Image className="h-4 w-4" />
+                      <span className="text-sm font-medium">Replicate (Image Gen)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.replicate === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.replicate === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.replicate === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.replicate === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                      </div>
                     </div>
                   </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{getStatusLabel(apiStatus.replicate)}</span>
+                    <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('replicate')}>
+                      Test
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.replicate)}</span>
-                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('replicate')}>
-                    Test
-                  </Button>
-                </div>
-              </div>
 
-              {/* Google AI */}
-              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Brain className="h-4 w-4" />
-                    <span className="text-sm font-medium">Google AI (Gemini)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.googleAI === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.googleAI === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.googleAI === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.googleAI === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                {/* Google AI */}
+                <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-4 w-4" />
+                      <span className="text-sm font-medium">Google AI (Gemini)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.googleAI === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.googleAI === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.googleAI === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.googleAI === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                      </div>
                     </div>
                   </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{getStatusLabel(apiStatus.googleAI)}</span>
+                    <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('googleAI')}>
+                      Test
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.googleAI)}</span>
-                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('googleAI')}>
-                    Test
-                  </Button>
-                </div>
-              </div>
 
-              {/* Hugging Face */}
-              <div className="p-3 rounded-lg border border-border bg-card space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    <span className="text-sm font-medium">Hugging Face</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.huggingFace === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.huggingFace === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.huggingFace === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.huggingFace === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                {/* Hugging Face */}
+                <div className="p-3 rounded-lg border border-border bg-card space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      <span className="text-sm font-medium">Hugging Face</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('not-configured')} ${apiStatus.huggingFace === 'not-configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-destructive' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('configured')} ${apiStatus.huggingFace === 'configured' ? 'ring-1 ring-offset-1 ring-offset-card ring-warning' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('tested')} ${apiStatus.huggingFace === 'tested' ? 'ring-1 ring-offset-1 ring-offset-card ring-yellow-500' : 'opacity-30'}`} />
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor('working')} ${apiStatus.huggingFace === 'working' ? 'ring-1 ring-offset-1 ring-offset-card ring-green-500' : 'opacity-30'}`} />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{getStatusLabel(apiStatus.huggingFace)}</span>
-                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('huggingFace')}>
-                    Test
-                  </Button>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{getStatusLabel(apiStatus.huggingFace)}</span>
+                    <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => handleTestAPI('huggingFace')}>
+                      Test
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           <Separator />
 
