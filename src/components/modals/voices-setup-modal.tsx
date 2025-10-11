@@ -50,28 +50,58 @@ export function VoicesSetupModal({ open, onClose }: VoicesSetupModalProps) {
   const handlePreview = async (voice: string, volume: number) => {
     setPlayingVoice(voice);
     try {
-      const utterance = new SpeechSynthesisUtterance(sampleText);
-      utterance.voice = speechSynthesis.getVoices().find(v => v.name.toLowerCase().includes(voice)) || null;
-      utterance.volume = volume;
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      
-      utterance.onend = () => setPlayingVoice(null);
-      utterance.onerror = () => {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            text: sampleText,
+            voice: voice,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to generate voice preview');
+      }
+
+      const data = await response.json();
+      const audioData = atob(data.audioContent);
+      const audioArray = new Uint8Array(audioData.length);
+      for (let i = 0; i < audioData.length; i++) {
+        audioArray[i] = audioData.charCodeAt(i);
+      }
+
+      const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.volume = volume;
+
+      audio.onended = () => {
         setPlayingVoice(null);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = () => {
+        setPlayingVoice(null);
+        URL.revokeObjectURL(audioUrl);
         toast({
           title: "Preview Error",
-          description: "Unable to play voice preview. Using system default voice.",
+          description: "Unable to play voice preview.",
           variant: "destructive",
         });
       };
-      
-      speechSynthesis.speak(utterance);
+
+      await audio.play();
     } catch (error) {
       setPlayingVoice(null);
       toast({
         title: "Preview Error",
-        description: "Voice preview is not supported in this browser.",
+        description: error instanceof Error ? error.message : "Voice preview failed. Make sure OpenAI API key is configured.",
         variant: "destructive",
       });
     }
