@@ -35,7 +35,9 @@ export function FamilyTreeApp() {
   const [importOpen, setImportOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(true);
+  const [showCodeHealth, setShowCodeHealth] = useState(true);
   const [focus, setFocus] = useState<string | null>(null);
+  const [activeButton, setActiveButton] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [maxGenerations, setMaxGenerations] = useState<number>(7);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -128,7 +130,7 @@ export function FamilyTreeApp() {
     }
   };
 
-  const onSaveLocal = () => {
+  const onSaveLocal = (saveAs = false) => {
     if (!ged) {
       toast({
         title: "Nothing to Save",
@@ -138,13 +140,21 @@ export function FamilyTreeApp() {
       return;
     }
     
+    let filename = `family-tree-${new Date().toISOString().split('T')[0]}.json`;
+    
+    if (saveAs) {
+      const customName = prompt("Enter filename:", filename);
+      if (!customName) return; // User cancelled
+      filename = customName.endsWith('.json') ? customName : `${customName}.json`;
+    }
+    
     // Create downloadable file
     const dataStr = JSON.stringify(ged, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `family-tree-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -152,7 +162,7 @@ export function FamilyTreeApp() {
     
     toast({
       title: "Downloaded",
-      description: "Your family tree has been saved to your Downloads folder.",
+      description: `Your family tree has been saved as ${filename}.`,
     });
   };
 
@@ -295,6 +305,8 @@ export function FamilyTreeApp() {
       <DevTools 
         showChangelog={showChangelog} 
         onToggleChangelog={() => setShowChangelog(!showChangelog)}
+        showCodeHealth={showCodeHealth}
+        onToggleCodeHealth={() => setShowCodeHealth(!showCodeHealth)}
         onResetTreeData={() => {
           setGed(null);
           setFocus(null);
@@ -337,10 +349,15 @@ export function FamilyTreeApp() {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              <Button onClick={() => inputRef.current?.click()} variant="default" className="relative">
+              <Button 
+                onClick={() => inputRef.current?.click()} 
+                variant="ghost" 
+                className={`relative ${activeButton === 'import' ? 'ring-2 ring-primary' : ''}`}
+                onMouseEnter={() => setActiveButton('import')}
+                onMouseLeave={() => !importOpen && setActiveButton(null)}
+              >
                 <Upload className="mr-2 h-4 w-4" />
-                Import GEDCOM
-                <StatusIndicator status="configured" size="sm" className="absolute -top-1 -right-1" />
+                Import Family Data
               </Button>
               <Input
                 ref={inputRef}
@@ -349,27 +366,68 @@ export function FamilyTreeApp() {
                 onChange={onFile}
                 className="hidden"
               />
-              <Button onClick={() => setPrefsOpen(true)} variant="outline" size="icon" title="Preferences" className="relative">
+              <Button 
+                onClick={() => {
+                  setPrefsOpen(true);
+                  setActiveButton('prefs');
+                }} 
+                variant="ghost" 
+                size="icon" 
+                title="Preferences" 
+                className={`relative ${prefsOpen ? 'ring-2 ring-primary' : ''}`}
+              >
                 <Settings className="h-4 w-4" />
-                <StatusIndicator status="tested" size="sm" className="absolute -top-1 -right-1" />
               </Button>
-              <Button onClick={onSaveLocal} variant="outline" size="icon" title="Save Local" className="relative">
-                <Save className="h-4 w-4" />
-                <StatusIndicator status="working" size="sm" className="absolute -top-1 -right-1" />
-              </Button>
-              <Button onClick={() => setCloudOpen(true)} variant="outline" size="icon" title="Save to Cloud" className="relative">
+              <div className="relative">
+                <Button 
+                  onClick={() => onSaveLocal(false)} 
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    onSaveLocal(true);
+                  }}
+                  variant="ghost" 
+                  size="icon" 
+                  title="Save Local (Right-click for Save As)"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button 
+                onClick={() => {
+                  setCloudOpen(true);
+                  setActiveButton('cloud');
+                }} 
+                variant="ghost" 
+                size="icon" 
+                title="Save to Cloud" 
+                className={`relative ${cloudOpen ? 'ring-2 ring-primary' : ''}`}
+              >
                 <Cloud className="h-4 w-4" />
-                <StatusIndicator status="configured" size="sm" className="absolute -top-1 -right-1" />
               </Button>
               {showChangelog && (
-                <Button onClick={() => setDrawerOpen(true)} variant="ghost" size="icon" title="Change Log">
+                <Button 
+                  onClick={() => {
+                    setDrawerOpen(true);
+                    setActiveButton('changelog');
+                  }} 
+                  variant="ghost" 
+                  size="icon" 
+                  title="Change Log"
+                  className={drawerOpen ? 'ring-2 ring-primary' : ''}
+                >
                   <History className="h-4 w-4" />
                 </Button>
               )}
-              <Button onClick={() => navigate('/code-health')} variant="outline" size="icon" title="Code Health" className="relative">
-                <Activity className="h-4 w-4" />
-                <StatusIndicator status="working" size="sm" className="absolute -top-1 -right-1" />
-              </Button>
+              {showCodeHealth && (
+                <Button 
+                  onClick={() => navigate('/code-health')} 
+                  variant="ghost" 
+                  size="icon" 
+                  title="Code Health"
+                >
+                  <Activity className="h-4 w-4" />
+                </Button>
+              )}
               <Button onClick={handleSignOut} variant="ghost" size="icon" title="Sign Out">
                 <LogOut className="h-4 w-4" />
               </Button>

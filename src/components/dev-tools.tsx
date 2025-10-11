@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DevToolsProps {
   showChangelog: boolean;
   onToggleChangelog: () => void;
+  showCodeHealth: boolean;
+  onToggleCodeHealth: () => void;
   onResetTreeData?: () => void;
   onLoadTestData?: (content: string, filename: string) => void;
 }
@@ -36,13 +39,18 @@ interface TemporaryInvite {
   created_at: string;
 }
 
-export function DevTools({ showChangelog, onToggleChangelog, onResetTreeData, onLoadTestData }: DevToolsProps) {
+export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onToggleCodeHealth, onResetTreeData, onLoadTestData }: DevToolsProps) {
   const [open, setOpen] = useState(false);
   const [devNotes, setDevNotes] = useState("");
   const [savedNotes, setSavedNotes] = useState<DevNote[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
+  
+  // Collapsible state
+  const [tempAccessOpen, setTempAccessOpen] = useState(true);
+  const [devNotesOpen, setDevNotesOpen] = useState(true);
+  const [apiIntegrationsOpen, setApiIntegrationsOpen] = useState(true);
   
   // Temporary Access state
   const [tempEmail, setTempEmail] = useState("");
@@ -466,12 +474,16 @@ export function DevTools({ showChangelog, onToggleChangelog, onResetTreeData, on
           {isAdmin && (
             <>
               <Separator />
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <ShieldAlert className="h-4 w-4 text-destructive" />
-                  Temporary Access (Admin Only)
-                </h3>
-                <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5 space-y-3">
+              <Collapsible open={tempAccessOpen} onOpenChange={setTempAccessOpen}>
+                <CollapsibleTrigger className="flex items-center justify-between w-full">
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4 text-destructive" />
+                    Temporary Access (Admin Only)
+                  </h3>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${tempAccessOpen ? 'transform rotate-180' : ''}`} />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3">
+                  <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5 space-y-3">
                   <p className="text-xs text-muted-foreground">
                     Generate single-use magic links for temporary access
                   </p>

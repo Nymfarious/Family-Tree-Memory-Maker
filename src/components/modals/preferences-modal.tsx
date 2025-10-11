@@ -3,10 +3,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useEffect } from "react";
 import { CloudStorage } from "@/utils/cloudStorage";
 import { useToast } from "@/hooks/use-toast";
-import { Database, HardDrive } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Database, HardDrive, ChevronDown } from "lucide-react";
 
 interface PreferencesModalProps {
   open: boolean;
@@ -51,7 +53,9 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   const [treeFilters, setTreeFilters] = useState<TreeFilterPreferences>(DEFAULT_TREE_FILTERS);
   const [dropboxConnected, setDropboxConnected] = useState(false);
   const [driveConnected, setDriveConnected] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const saved = localStorage.getItem('card-display-preferences');
@@ -135,18 +139,18 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
         <div className="space-y-6 py-4">
           <div className="space-y-2">
             <Label htmlFor="theme-select">Theme</Label>
-            <Select defaultValue="dark">
+            <Select value={theme} onValueChange={setTheme}>
               <SelectTrigger id="theme-select">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="dark">Dark (Current)</SelectItem>
-                <SelectItem value="light" disabled>Light (Coming Soon)</SelectItem>
-                <SelectItem value="auto" disabled>Auto (Coming Soon)</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="system">Auto (System)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Currently using the dark theme as specified in the design system.
+              Choose your preferred theme or sync with system settings.
             </p>
           </div>
 
@@ -159,12 +163,20 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
               <SelectContent>
                 <SelectItem value="list">List View</SelectItem>
                 <SelectItem value="circular">Circular View</SelectItem>
+                <SelectItem value="map">Map View</SelectItem>
+                <SelectItem value="timeline" disabled>Timeline (Coming Soon)</SelectItem>
+                <SelectItem value="pedigree" disabled>Pedigree (Coming Soon)</SelectItem>
+                <SelectItem value="hourglass" disabled>Hourglass (Coming Soon)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-4 pt-4 border-t border-border">
-            <Label className="text-sm font-medium">Tree Display Filters</Label>
+          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen} className="space-y-4 pt-4 border-t border-border">
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <Label className="text-sm font-medium cursor-pointer">Tree Display Filters</Label>
+              <ChevronDown className={`h-4 w-4 transition-transform ${filtersOpen ? 'transform rotate-180' : ''}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4">
             
             <div className="space-y-2">
               <Label htmlFor="max-gen" className="text-xs text-muted-foreground">Maximum Generations</Label>
@@ -285,10 +297,11 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
               </div>
             </div>
             
-            <p className="text-xs text-muted-foreground">
-              These filters help you focus on specific time periods or generational groups in large family trees. Jones Generation and Xennials are micro-generations bridging Baby Boomers/Gen X and Gen X/Millennials respectively.
-            </p>
-          </div>
+              <p className="text-xs text-muted-foreground">
+                These filters help you focus on specific time periods or generational groups in large family trees. Jones Generation and Xennials are micro-generations bridging Baby Boomers/Gen X and Gen X/Millennials respectively.
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
 
           <div className="space-y-4">
             <Label>Person Card Display</Label>
