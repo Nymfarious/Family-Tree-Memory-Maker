@@ -26,7 +26,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CodeHealthChat } from "@/components/code-health-chat";
 import { CodeHealthSidebar } from "@/components/code-health-sidebar";
 import { CodeHealthPriorityPanel } from "@/components/code-health-priority-panel";
-import { CodeHealthSettings } from "@/components/code-health-settings";
 import { AIWorkspace } from "@/components/ai-workspace";
 import { FlowchartLibrary } from "@/components/flowchart-library";
 import { toast } from "sonner";
@@ -734,7 +733,6 @@ export default function CodeHealth() {
                   <Library className="h-4 w-4 mr-2" />
                   Roadmap
                 </Button>
-                <CodeHealthSettings />
               </div>
             </div>
           </div>

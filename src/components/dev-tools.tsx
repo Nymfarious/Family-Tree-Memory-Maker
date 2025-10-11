@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff } from "lucide-react";
+import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -72,6 +72,12 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
     huggingFace: 'not-configured',
     lovableAI: 'configured',
   });
+  
+  // Lovable API Key management (Admin only)
+  const [lovableApiKey, setLovableApiKey] = useState("");
+  const [showLovableKey, setShowLovableKey] = useState(false);
+  const [testingLovableKey, setTestingLovableKey] = useState(false);
+  
   const { toast } = useToast();
 
   // Check if current user is admin
@@ -111,6 +117,16 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
       checkAdminRole();
       if (isAdmin) {
         loadInvites();
+      }
+      // Load Lovable API key from localStorage (admin only)
+      const storedKey = localStorage.getItem('lovable_api_key');
+      if (storedKey && isAdmin) {
+        try {
+          setLovableApiKey(atob(storedKey));
+          setApiStatus(prev => ({ ...prev, lovableAI: 'configured' }));
+        } catch (e) {
+          console.error('Error decoding API key:', e);
+        }
       }
     }
   }, [open, isAdmin]);
@@ -319,6 +335,90 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
       case 'tested': return 'Tested';
       case 'working': return 'Working';
     }
+  };
+
+  // Lovable API Key handlers (Admin only)
+  const saveLovableApiKey = () => {
+    if (!lovableApiKey.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an API key",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    localStorage.setItem('lovable_api_key', btoa(lovableApiKey));
+    setApiStatus(prev => ({ ...prev, lovableAI: 'configured' }));
+    toast({
+      title: "API Key Saved",
+      description: "Lovable API key has been saved successfully",
+    });
+  };
+
+  const testLovableApiKey = async () => {
+    if (!lovableApiKey.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an API key first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setTestingLovableKey(true);
+    setApiStatus(prev => ({ ...prev, lovableAI: 'tested' }));
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/code-health-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: "test",
+            conversationHistory: []
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setApiStatus(prev => ({ ...prev, lovableAI: 'working' }));
+        toast({
+          title: "Connection Successful",
+          description: "✅ Lovable AI connection is working!",
+        });
+      } else {
+        setApiStatus(prev => ({ ...prev, lovableAI: 'configured' }));
+        toast({
+          title: "Connection Failed",
+          description: "❌ Check your API key",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setApiStatus(prev => ({ ...prev, lovableAI: 'configured' }));
+      toast({
+        title: "Connection Test Failed",
+        description: "❌ Could not connect to Lovable AI",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingLovableKey(false);
+    }
+  };
+
+  const clearLovableApiKey = () => {
+    localStorage.removeItem('lovable_api_key');
+    setLovableApiKey("");
+    setApiStatus(prev => ({ ...prev, lovableAI: 'not-configured' }));
+    toast({
+      title: "API Key Cleared",
+      description: "Lovable API key has been removed",
+    });
   };
 
   const handleTestAPI = async (api: 'replicate' | 'googleAI' | 'huggingFace' | 'lovableAI') => {
@@ -722,6 +822,74 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
                       Test
                     </Button>
                   </div>
+                  
+                  {/* Admin-only API Key Management */}
+                  {isAdmin && (
+                    <div className="mt-3 pt-3 border-t border-border space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-destructive font-semibold">
+                        <ShieldAlert className="h-3 w-3" />
+                        ADMIN ONLY - Live API Key
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lovable-api-key" className="text-xs">Lovable API Key</Label>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              id="lovable-api-key"
+                              type={showLovableKey ? "text" : "password"}
+                              value={lovableApiKey}
+                              onChange={(e) => setLovableApiKey(e.target.value)}
+                              placeholder="Enter Lovable API key..."
+                              className="h-8 text-xs pr-10"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-2"
+                              onClick={() => setShowLovableKey(!showLovableKey)}
+                            >
+                              {showLovableKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Stored locally, never sent to our servers (only to Lovable AI).
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={saveLovableApiKey} size="sm" variant="outline" className="flex-1 h-7 text-xs">
+                          Save Key
+                        </Button>
+                        <Button 
+                          onClick={testLovableApiKey} 
+                          size="sm"
+                          variant="outline"
+                          disabled={testingLovableKey || !lovableApiKey.trim()}
+                          className="flex-1 h-7 text-xs"
+                        >
+                          {testingLovableKey ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Testing...
+                            </>
+                          ) : (
+                            "Test"
+                          )}
+                        </Button>
+                      </div>
+                      {lovableApiKey && (
+                        <Button 
+                          onClick={clearLovableApiKey} 
+                          size="sm"
+                          variant="outline" 
+                          className="w-full h-7 text-xs"
+                        >
+                          Clear API Key
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Replicate */}
