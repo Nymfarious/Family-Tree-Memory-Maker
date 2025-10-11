@@ -21,8 +21,7 @@ import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut, Activity, MapPin, GitBranch, Clock, Workflow } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, LogOut, Activity, MapPin, GitBranch, Clock, Workflow } from "lucide-react";
 
 export function FamilyTreeApp() {
   const navigate = useNavigate();
@@ -36,7 +35,6 @@ export function FamilyTreeApp() {
   const [importOpen, setImportOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(true);
-  const [showRoadmap, setShowRoadmap] = useState(false);
   const [focus, setFocus] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [maxGenerations, setMaxGenerations] = useState<number>(7);
@@ -297,8 +295,6 @@ export function FamilyTreeApp() {
       <DevTools 
         showChangelog={showChangelog} 
         onToggleChangelog={() => setShowChangelog(!showChangelog)}
-        showRoadmap={showRoadmap}
-        onToggleRoadmap={() => setShowRoadmap(!showRoadmap)}
         onResetTreeData={() => {
           setGed(null);
           setFocus(null);
@@ -353,35 +349,25 @@ export function FamilyTreeApp() {
                 onChange={onFile}
                 className="hidden"
               />
-              <Button onClick={() => setPrefsOpen(true)} variant="outline" className="relative">
-                <Settings className="mr-2 h-4 w-4" />
-                Preferences
+              <Button onClick={() => setPrefsOpen(true)} variant="outline" size="icon" title="Preferences" className="relative">
+                <Settings className="h-4 w-4" />
                 <StatusIndicator status="tested" size="sm" className="absolute -top-1 -right-1" />
               </Button>
-              <Button onClick={onSaveLocal} variant="outline" className="relative">
-                <Save className="mr-2 h-4 w-4" />
-                Save Local
+              <Button onClick={onSaveLocal} variant="outline" size="icon" title="Save Local" className="relative">
+                <Save className="h-4 w-4" />
                 <StatusIndicator status="working" size="sm" className="absolute -top-1 -right-1" />
               </Button>
-              <Button onClick={() => setCloudOpen(true)} variant="outline" className="relative">
-                <Cloud className="mr-2 h-4 w-4" />
-                Save to Cloud…
+              <Button onClick={() => setCloudOpen(true)} variant="outline" size="icon" title="Save to Cloud" className="relative">
+                <Cloud className="h-4 w-4" />
                 <StatusIndicator status="configured" size="sm" className="absolute -top-1 -right-1" />
               </Button>
               {showChangelog && (
-                <Button onClick={() => setDrawerOpen(true)} variant="ghost">
-                  <History className="mr-2 h-4 w-4" />
-                  Change Log
+                <Button onClick={() => setDrawerOpen(true)} variant="ghost" size="icon" title="Change Log">
+                  <History className="h-4 w-4" />
                 </Button>
               )}
-              <Button onClick={() => setShowRoadmap(true)} variant="ghost" className="relative">
-                <Globe className="mr-2 h-4 w-4" />
-                Roadmap
-                <StatusIndicator status="not-configured" size="sm" className="absolute -top-1 -right-1" />
-              </Button>
-              <Button onClick={() => navigate('/code-health')} variant="outline" className="relative">
-                <Activity className="mr-2 h-4 w-4" />
-                Code Health
+              <Button onClick={() => navigate('/code-health')} variant="outline" size="icon" title="Code Health" className="relative">
+                <Activity className="h-4 w-4" />
                 <StatusIndicator status="working" size="sm" className="absolute -top-1 -right-1" />
               </Button>
               <Button onClick={handleSignOut} variant="ghost" size="icon" title="Sign Out">
@@ -547,19 +533,6 @@ export function FamilyTreeApp() {
         onClose={() => setDrawerOpen(false)} 
         entries={changelog} 
       />
-      
-      {/* Roadmap Dialog */}
-      <Dialog open={showRoadmap} onOpenChange={setShowRoadmap}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" />
-              Development Roadmap
-            </DialogTitle>
-          </DialogHeader>
-          <TaskList />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

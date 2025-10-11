@@ -725,7 +725,17 @@ export default function CodeHealth() {
                 </div>
                 <Badge variant="outline" className="text-xs">Beta</Badge>
               </div>
-              <CodeHealthSettings />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setViewMode(viewMode === 'library' ? 'all' : 'library')} 
+                  variant={viewMode === 'library' ? 'default' : 'outline'} 
+                  size="sm"
+                >
+                  <Library className="h-4 w-4 mr-2" />
+                  Roadmap
+                </Button>
+                <CodeHealthSettings />
+              </div>
             </div>
           </div>
         </div>

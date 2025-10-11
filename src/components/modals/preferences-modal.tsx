@@ -26,7 +26,7 @@ interface TreeFilterPreferences {
   timeFilter: 'all' | 'century' | 'decade' | 'generation';
   startYear?: number;
   endYear?: number;
-  generationSpan?: string; // e.g., 'greatest-generation', 'baby-boomer', 'early-gen-x', 'late-gen-x', 'xennials', 'jones-generation', etc.
+  generationSpans?: string[]; // Changed to array for multi-select
   maternalGenerations: number;
   paternalGenerations: number;
 }
@@ -127,7 +127,7 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Preferences</DialogTitle>
         </DialogHeader>
@@ -205,29 +205,39 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
             </div>
 
             {treeFilters.timeFilter === 'generation' && (
-              <div className="space-y-2">
-                <Label htmlFor="gen-span" className="text-xs text-muted-foreground">Generation Span</Label>
-                <Select 
-                  value={treeFilters.generationSpan || 'all'} 
-                  onValueChange={(val) => handleTreeFilterChange('generationSpan', val)}
-                >
-                  <SelectTrigger id="gen-span">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Generations</SelectItem>
-                    <SelectItem value="greatest-generation">Greatest Generation (1901-1927)</SelectItem>
-                    <SelectItem value="silent-generation">Silent Generation (1928-1945)</SelectItem>
-                    <SelectItem value="baby-boomer">Baby Boomers (1946-1964)</SelectItem>
-                    <SelectItem value="jones-generation">Jones Generation (1954-1965)</SelectItem>
-                    <SelectItem value="early-gen-x">Early Gen X (1965-1972)</SelectItem>
-                    <SelectItem value="late-gen-x">Late Gen X (1973-1980)</SelectItem>
-                    <SelectItem value="xennials">Xennials (1977-1983)</SelectItem>
-                    <SelectItem value="millennial">Millennials (1981-1996)</SelectItem>
-                    <SelectItem value="gen-z">Gen Z (1997-2012)</SelectItem>
-                    <SelectItem value="gen-alpha">Gen Alpha (2013+)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                <Label className="text-xs text-muted-foreground">Generation Spans (Multi-Select)</Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-border rounded-md p-3">
+                  {[
+                    { value: 'greatest-generation', label: 'Greatest Generation (1901-1927)' },
+                    { value: 'silent-generation', label: 'Silent Generation (1928-1945)' },
+                    { value: 'baby-boomer', label: 'Baby Boomers (1946-1964)' },
+                    { value: 'jones-generation', label: 'Jones Generation (1954-1965)' },
+                    { value: 'early-gen-x', label: 'Early Gen X (1965-1972)' },
+                    { value: 'late-gen-x', label: 'Late Gen X (1973-1980)' },
+                    { value: 'xennials', label: 'Xennials (1977-1983)' },
+                    { value: 'millennial', label: 'Millennials (1981-1996)' },
+                    { value: 'gen-z', label: 'Gen Z (1997-2012)' },
+                    { value: 'gen-alpha', label: 'Gen Alpha (2013+)' },
+                  ].map((gen) => (
+                    <div key={gen.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`gen-${gen.value}`}
+                        checked={treeFilters.generationSpans?.includes(gen.value) || false}
+                        onCheckedChange={(checked) => {
+                          const current = treeFilters.generationSpans || [];
+                          const updated = checked
+                            ? [...current, gen.value]
+                            : current.filter(s => s !== gen.value);
+                          handleTreeFilterChange('generationSpans', updated);
+                        }}
+                      />
+                      <Label htmlFor={`gen-${gen.value}`} className="text-sm font-normal cursor-pointer">
+                        {gen.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

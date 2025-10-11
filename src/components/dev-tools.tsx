@@ -15,8 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 interface DevToolsProps {
   showChangelog: boolean;
   onToggleChangelog: () => void;
-  showRoadmap: boolean;
-  onToggleRoadmap: () => void;
   onResetTreeData?: () => void;
   onLoadTestData?: (content: string, filename: string) => void;
 }
@@ -38,7 +36,7 @@ interface TemporaryInvite {
   created_at: string;
 }
 
-export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onToggleRoadmap, onResetTreeData, onLoadTestData }: DevToolsProps) {
+export function DevTools({ showChangelog, onToggleChangelog, onResetTreeData, onLoadTestData }: DevToolsProps) {
   const [open, setOpen] = useState(false);
   const [devNotes, setDevNotes] = useState("");
   const [savedNotes, setSavedNotes] = useState<DevNote[]>([]);
@@ -795,16 +793,6 @@ export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onTogg
                   onClick={onToggleChangelog}
                 >
                   {showChangelog ? "ON" : "OFF"}
-                </Button>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
-                <span className="text-sm">Show Roadmap Button</span>
-                <Button
-                  size="sm"
-                  variant={showRoadmap ? "default" : "outline"}
-                  onClick={onToggleRoadmap}
-                >
-                  {showRoadmap ? "ON" : "OFF"}
                 </Button>
               </div>
             </div>

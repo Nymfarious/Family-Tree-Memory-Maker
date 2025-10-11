@@ -5,7 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Globe } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MapPin, Globe, Book, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MapTreeViewProps {
   people: Record<string, Person>;
@@ -16,6 +19,39 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [maxGenerations, setMaxGenerations] = useState<number>(6);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historicalContext, setHistoricalContext] = useState<string>("");
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const { toast } = useToast();
+
+  const handleGetHistoricalContext = async (location?: string) => {
+    setLoadingHistory(true);
+    setHistoryDialogOpen(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('historical-context', {
+        body: {
+          timeframe: "1800-2025",
+          location: location || selectedLocation || "United States",
+          migrationPattern: true
+        }
+      });
+
+      if (error) throw error;
+
+      setHistoricalContext(data.context);
+    } catch (error) {
+      console.error('Error fetching historical context:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch historical context. Please try again.",
+        variant: "destructive",
+      });
+      setHistoricalContext("Unable to fetch historical context at this time.");
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   // Extract unique locations from birth and death places
   const locations = useMemo(() => {
@@ -81,6 +117,17 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
             </Select>
           </div>
         </div>
+
+        <div className="flex gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => handleGetHistoricalContext()}
+          >
+            <Book className="h-4 w-4 mr-2" />
+            Historical Context
+          </Button>
+        </div>
       </div>
 
       {/* Map Placeholder */}
@@ -129,7 +176,19 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
                       </p>
                     </div>
                   </div>
-                  <Badge variant="secondary">{count}</Badge>
+                  <div className="flex gap-2">
+                    <Badge variant="secondary">{count}</Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGetHistoricalContext(location);
+                      }}
+                    >
+                      <Book className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               ))}
               {locations.length > 20 && (
@@ -194,6 +253,30 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Historical Context Dialog */}
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Book className="h-5 w-5" />
+              Historical Context
+              {selectedLocation && ` - ${selectedLocation}`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <p className="text-muted-foreground whitespace-pre-wrap">{historicalContext}</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
