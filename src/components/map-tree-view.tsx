@@ -144,7 +144,7 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
             </h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               The Map View will display family members' birth and death locations on an interactive {viewMode === '3d' ? 'rotating globe' : 'world map'}. 
-              This feature is coming soon and will use geolocation data from your family data.
+              This feature is coming soon and will use geolocation data from uploaded family data.
             </p>
           </div>
         </div>
@@ -247,9 +247,13 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
 
       {locations.length === 0 && (
         <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
+          <CardContent className="p-6 text-center text-muted-foreground space-y-3">
             <p>No location data found in the current family tree.</p>
-            <p className="text-xs mt-2">Location information comes from birth and death place fields in family data.</p>
+            <p className="text-xs">Location information comes from birth and death records in uploaded family data.</p>
+            <Button variant="outline" size="sm" disabled className="mt-2">
+              Add Location Data Manually
+            </Button>
+            <p className="text-[10px]">Person editor coming soon - edit location data for each person</p>
           </CardContent>
         </Card>
       )}

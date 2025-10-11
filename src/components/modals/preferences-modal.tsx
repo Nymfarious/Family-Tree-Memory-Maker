@@ -4,11 +4,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { VoicesSetupModal } from "./voices-setup-modal";
+import { UserProfileModal } from "./user-profile-modal";
 import { useState, useEffect } from "react";
 import { CloudStorage } from "@/utils/cloudStorage";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
-import { Database, HardDrive, ChevronDown } from "lucide-react";
+import { Database, HardDrive, ChevronDown, Volume2, User } from "lucide-react";
 
 interface PreferencesModalProps {
   open: boolean;
@@ -54,6 +56,8 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   const [dropboxConnected, setDropboxConnected] = useState(false);
   const [driveConnected, setDriveConnected] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
+  const [voicesModalOpen, setVoicesModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
 
@@ -130,13 +134,37 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Preferences</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6 py-4">
+    <>
+      <VoicesSetupModal open={voicesModalOpen} onClose={() => setVoicesModalOpen(false)} />
+      <UserProfileModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
+      
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Preferences</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Quick Access Buttons */}
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setVoicesModalOpen(true)}
+              >
+                <Volume2 className="h-4 w-4 mr-2" />
+                Voice Settings
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setProfileModalOpen(true)}
+              >
+                <User className="h-4 w-4 mr-2" />
+                User Profile
+              </Button>
+            </div>
+
           <div className="space-y-2">
             <Label htmlFor="theme-select">Theme</Label>
             <Select value={theme} onValueChange={setTheme}>
@@ -402,7 +430,8 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

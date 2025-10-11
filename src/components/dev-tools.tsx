@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff, Loader2, CheckCircle2, XCircle, AlertCircle, Upload, Cloud, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -547,7 +547,7 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
           <SheetTitle className="flex items-center gap-2">
             <Bug className="h-5 w-5 text-warning" />
             Developer Tools
-            {isAdmin && <Badge variant="destructive" className="text-xs">ADMIN</Badge>}
+            {isAdmin && <Badge variant="destructive" className="text-xs bg-destructive hover:bg-destructive">ADMIN</Badge>}
           </SheetTitle>
         </SheetHeader>
 
@@ -969,6 +969,115 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
 
           <Separator />
 
+          {/* AI Voice Assistant (Admin Only) */}
+          {isAdmin && (
+            <>
+              <Collapsible defaultOpen className="space-y-3">
+                <CollapsibleTrigger className="flex items-center justify-between w-full">
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    AI Voice Assistant
+                  </h3>
+                  <ChevronDown className="h-4 w-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3">
+                  {/* Secret Button Icon Configurator */}
+                  <div className="p-3 rounded-lg border border-border bg-card/50 space-y-3">
+                    <Label className="text-xs font-semibold">Secret Button Icon</Label>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 h-8 text-xs">
+                        <Upload className="h-3 w-3 mr-1" />
+                        Upload
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" disabled>
+                        <Cloud className="h-3 w-3 mr-1" />
+                        Cloud
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" disabled>
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        AI Gen
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Button Visibility</span>
+                      <Button size="sm" variant="ghost" className="h-6 text-xs">
+                        <Eye className="h-3 w-3 mr-1" />
+                        Visible
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Voice Transcription & AI Interface */}
+                  <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
+                    {/* Recording Controls */}
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="relative"
+                        disabled
+                      >
+                        <div className="relative">
+                          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="currentColor" />
+                            <path d="M19 10v2a7 7 0 1 1-14 0v-2M12 19v4M8 23h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                          <div className="absolute inset-0 rounded-full bg-status-red animate-pulse opacity-0 pointer-events-none" />
+                        </div>
+                      </Button>
+                      <div className="flex-1 flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">00:00</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full w-0 bg-primary transition-all" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Transcription Display */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Transcribed Text</Label>
+                      <Textarea
+                        placeholder="Audio will be transcribed here... Edit before sending."
+                        className="min-h-[100px] text-xs"
+                        disabled
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Recording supports pause/resume. Up to 3 segments will be combined.
+                      </p>
+                    </div>
+
+                    {/* Send to AI */}
+                    <Button size="sm" className="w-full" disabled>
+                      <svg className="h-3 w-3 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Send to AI
+                    </Button>
+
+                    {/* AI Response Display */}
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">AI Response</Label>
+                        <Button size="sm" variant="ghost" className="h-6 text-xs" disabled>
+                          <Volume2 className="h-3 w-3 mr-1" />
+                          Read Aloud
+                        </Button>
+                      </div>
+                      <div className="p-2 rounded bg-muted/50 text-xs text-muted-foreground min-h-[60px]">
+                        AI responses will appear here and can be read aloud.
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Voice features coming soon. Configure in Settings → Voice Settings.
+                  </p>
+                </CollapsibleContent>
+              </Collapsible>
+              <Separator />
+            </>
+          )}
+
           {/* UI Controls */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -984,6 +1093,16 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
                   onClick={onToggleChangelog}
                 >
                   {showChangelog ? "ON" : "OFF"}
+                </Button>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                <span className="text-sm">Show Code Health Button</span>
+                <Button
+                  size="sm"
+                  variant={showCodeHealth ? "default" : "outline"}
+                  onClick={onToggleCodeHealth}
+                >
+                  {showCodeHealth ? "ON" : "OFF"}
                 </Button>
               </div>
             </div>
