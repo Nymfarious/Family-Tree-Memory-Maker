@@ -359,25 +359,35 @@ export function DevTools({ showChangelog, onToggleChangelog, showRoadmap, onTogg
 
   const handleTestData = async () => {
     try {
-      const response = await fetch('/sample.ged');
+      // Try to load primary test data first (user's Kennedy tree, filtered)
+      let response = await fetch('/kennedy-full.ged');
+      let filename = 'kennedy-full.ged';
+      
+      // Fallback to sample if primary not available
       if (!response.ok) {
-        throw new Error('Failed to fetch sample GEDCOM file');
+        response = await fetch('/sample.ged');
+        filename = 'sample.ged';
       }
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch test GEDCOM file');
+      }
+      
       const content = await response.text();
       
       if (onLoadTestData) {
-        onLoadTestData(content, 'sample.ged');
+        onLoadTestData(content, filename);
       }
       
       toast({
         title: "Test Data Loaded",
-        description: "Sample GEDCOM file has been loaded successfully.",
+        description: `Loaded ${filename === 'kennedy-full.ged' ? 'Kennedy Family Tree' : 'Sample'} data successfully.`,
       });
     } catch (error) {
       console.error('Error loading test data:', error);
       toast({
         title: "Failed to Load Test Data",
-        description: error instanceof Error ? error.message : "Could not load sample GEDCOM file.",
+        description: error instanceof Error ? error.message : "Could not load test GEDCOM file.",
         variant: "destructive",
       });
     }

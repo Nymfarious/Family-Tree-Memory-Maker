@@ -21,6 +21,14 @@ interface CardDisplayPreferences {
   showOccupation: boolean;
 }
 
+interface TreeFilterPreferences {
+  maxGenerations: number;
+  timeFilter: 'all' | 'century' | 'decade' | 'generation';
+  startYear?: number;
+  endYear?: number;
+  generationSpan?: string; // e.g., 'greatest-generation', 'baby-boomer', 'gen-x', etc.
+}
+
 const DEFAULT_PREFERENCES: CardDisplayPreferences = {
   showBirth: true,
   showDeath: true,
@@ -29,8 +37,14 @@ const DEFAULT_PREFERENCES: CardDisplayPreferences = {
   showOccupation: true,
 };
 
+const DEFAULT_TREE_FILTERS: TreeFilterPreferences = {
+  maxGenerations: 12,
+  timeFilter: 'all',
+};
+
 export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   const [preferences, setPreferences] = useState<CardDisplayPreferences>(DEFAULT_PREFERENCES);
+  const [treeFilters, setTreeFilters] = useState<TreeFilterPreferences>(DEFAULT_TREE_FILTERS);
   const [dropboxConnected, setDropboxConnected] = useState(false);
   const [driveConnected, setDriveConnected] = useState(false);
   const { toast } = useToast();
@@ -39,6 +53,11 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
     const saved = localStorage.getItem('card-display-preferences');
     if (saved) {
       setPreferences(JSON.parse(saved));
+    }
+    
+    const savedFilters = localStorage.getItem('tree-filter-preferences');
+    if (savedFilters) {
+      setTreeFilters(JSON.parse(savedFilters));
     }
 
     // Check cloud connections
@@ -50,6 +69,12 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
     const updated = { ...preferences, [key]: value };
     setPreferences(updated);
     localStorage.setItem('card-display-preferences', JSON.stringify(updated));
+  };
+  
+  const handleTreeFilterChange = (key: keyof TreeFilterPreferences, value: any) => {
+    const updated = { ...treeFilters, [key]: value };
+    setTreeFilters(updated);
+    localStorage.setItem('tree-filter-preferences', JSON.stringify(updated));
   };
 
   const handleConnectDropbox = async () => {
@@ -132,6 +157,52 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
                 <SelectItem value="circular">Circular View</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t border-border">
+            <Label className="text-sm font-medium">Tree Display Filters</Label>
+            
+            <div className="space-y-2">
+              <Label htmlFor="max-gen" className="text-xs text-muted-foreground">Maximum Generations</Label>
+              <Select 
+                value={String(treeFilters.maxGenerations)} 
+                onValueChange={(val) => handleTreeFilterChange('maxGenerations', parseInt(val))}
+              >
+                <SelectTrigger id="max-gen">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 Generations</SelectItem>
+                  <SelectItem value="7">7 Generations</SelectItem>
+                  <SelectItem value="10">10 Generations</SelectItem>
+                  <SelectItem value="12">12 Generations</SelectItem>
+                  <SelectItem value="15">15 Generations</SelectItem>
+                  <SelectItem value="20">20 Generations</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="time-filter" className="text-xs text-muted-foreground">Time Period Filter</Label>
+              <Select 
+                value={treeFilters.timeFilter} 
+                onValueChange={(val) => handleTreeFilterChange('timeFilter', val)}
+              >
+                <SelectTrigger id="time-filter">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="century">By Century</SelectItem>
+                  <SelectItem value="decade">By Decade</SelectItem>
+                  <SelectItem value="generation">By Generation Span</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              These filters help you focus on specific time periods or generational groups in large family trees.
+            </p>
           </div>
 
           <div className="space-y-4">

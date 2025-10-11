@@ -306,17 +306,22 @@ export function FamilyTreeApp() {
         onLoadTestData={(content, filename) => {
           try {
             const parsed = parseGedcom(content);
+            
+            // Filter to 12 generations if loading Kennedy tree
+            const treeFilters = localStorage.getItem('tree-filter-preferences');
+            const maxGens = treeFilters ? JSON.parse(treeFilters).maxGenerations : 12;
+            
             setGed(parsed);
-            setMaxGenerations(7);
+            setMaxGenerations(maxGens);
             StorageUtils.saveLocal("ft:ged-last", parsed);
             toast({
               title: "Test Data Loaded",
-              description: `Loaded ${Object.keys(parsed.people).length} people from "${filename}".`,
+              description: `Loaded ${Object.keys(parsed.people).length} people from "${filename}" (${maxGens} generations max).`,
             });
           } catch (error) {
             toast({
               title: "Failed to Parse Test Data",
-              description: "Could not parse the sample GEDCOM file.",
+              description: "Could not parse the test GEDCOM file.",
               variant: "destructive",
             });
           }
