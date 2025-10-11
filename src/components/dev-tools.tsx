@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff, Loader2, CheckCircle2, XCircle, AlertCircle, Upload, Cloud, Volume2 } from "lucide-react";
+import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff, Loader2, CheckCircle2, XCircle, AlertCircle, Upload, Cloud, Volume2, Activity, ListTodo } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ApiDashboardModal } from "@/components/modals/api-dashboard-modal";
 
 interface DevToolsProps {
   showChangelog: boolean;
@@ -77,6 +78,9 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
   const [lovableApiKey, setLovableApiKey] = useState("");
   const [showLovableKey, setShowLovableKey] = useState(false);
   const [testingLovableKey, setTestingLovableKey] = useState(false);
+  
+  // API Dashboard modal state
+  const [apiDashboardOpen, setApiDashboardOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -964,6 +968,67 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
                   </div>
                 </div>
               </div>
+              
+              {/* API Dashboard Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-3"
+                onClick={() => setApiDashboardOpen(true)}
+              >
+                <Activity className="h-3 w-3 mr-2" />
+                Open API Dashboard
+              </Button>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Separator />
+
+          {/* Wishlist Section */}
+          <Collapsible defaultOpen className="space-y-3">
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <ListTodo className="h-4 w-4 text-primary" />
+                Dev Wishlist
+              </h3>
+              <ChevronDown className="h-4 w-4" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2">
+              <div className="p-3 rounded-lg border border-border bg-card/50 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Checkbox id="wish-api-dashboard" defaultChecked />
+                  <Label htmlFor="wish-api-dashboard" className="text-xs leading-relaxed cursor-pointer">
+                    API Integration Dashboard - Monitor all API platforms, rate limits, bidirectional status, and secret locations
+                  </Label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="wish-realtime-logs" />
+                  <Label htmlFor="wish-realtime-logs" className="text-xs leading-relaxed cursor-pointer">
+                    Real-time API Call Logs - View live request/response data with timing and error tracking
+                  </Label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="wish-cost-tracking" />
+                  <Label htmlFor="wish-cost-tracking" className="text-xs leading-relaxed cursor-pointer">
+                    Cost Analytics - Track API spending across all platforms with budget alerts
+                  </Label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="wish-webhook-tester" />
+                  <Label htmlFor="wish-webhook-tester" className="text-xs leading-relaxed cursor-pointer">
+                    Webhook Testing Suite - Test and debug webhook integrations with mock payloads
+                  </Label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="wish-performance" />
+                  <Label htmlFor="wish-performance" className="text-xs leading-relaxed cursor-pointer">
+                    Performance Profiler - Identify slow API calls and optimization opportunities
+                  </Label>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground italic px-3">
+                Check items you'd like prioritized. These features help monitor and optimize your API integrations.
+              </p>
             </CollapsibleContent>
           </Collapsible>
 
@@ -1129,6 +1194,12 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
           </div>
         </div>
       </SheetContent>
+      
+      {/* API Dashboard Modal */}
+      <ApiDashboardModal 
+        open={apiDashboardOpen} 
+        onOpenChange={setApiDashboardOpen}
+      />
     </Sheet>
   );
 }
