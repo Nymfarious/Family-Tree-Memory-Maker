@@ -152,18 +152,8 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
 
         {/* Lineage Filter Toggles */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <Label className="text-sm font-medium">Show Lineage:</Label>
+          <Label className="text-sm font-medium">Show:</Label>
           <div className="flex gap-6">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="show-maternal"
-                checked={showMaternal}
-                onChange={(e) => setShowMaternal(e.target.checked)}
-                className="w-4 h-4 rounded border-border"
-              />
-              <Label htmlFor="show-maternal" className="font-normal cursor-pointer">Maternal</Label>
-            </div>
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -173,6 +163,16 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
                 className="w-4 h-4 rounded border-border"
               />
               <Label htmlFor="show-paternal" className="font-normal cursor-pointer">Paternal</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="show-maternal"
+                checked={showMaternal}
+                onChange={(e) => setShowMaternal(e.target.checked)}
+                className="w-4 h-4 rounded border-border"
+              />
+              <Label htmlFor="show-maternal" className="font-normal cursor-pointer">Maternal</Label>
             </div>
           </div>
         </div>
@@ -201,10 +201,10 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setExpandedSide(expandedSide === 'maternal' ? 'paternal' : 'maternal')}
+                onClick={() => setExpandedSide(expandedSide === 'paternal' ? 'maternal' : 'paternal')}
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
-                {expandedSide === 'maternal' ? 'Show Paternal' : 'Show Maternal'}
+                {expandedSide === 'paternal' ? 'Show Maternal' : 'Show Paternal'}
               </Button>
               <Button
                 variant="outline"
@@ -216,9 +216,9 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setExpandedSide(expandedSide === 'maternal' ? 'paternal' : 'maternal')}
+                onClick={() => setExpandedSide(expandedSide === 'paternal' ? 'maternal' : 'paternal')}
               >
-                {expandedSide === 'maternal' ? 'Show Paternal' : 'Show Maternal'}
+                {expandedSide === 'paternal' ? 'Show Maternal' : 'Show Paternal'}
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
@@ -227,75 +227,79 @@ export function TreeList({ roots, people, childToParents, families, onFocus }: T
           {/* Two Column Layout or Expanded View */}
           {expandedSide === null ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Maternal Line */}
-              {showMaternal && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-genealogy-female flex items-center gap-2 border-b border-border pb-2">
-                      <span className="w-3 h-3 rounded-full bg-genealogy-female"></span>
-                      Maternal Line
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setExpandedSide('maternal')}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <ul className="space-y-4">
-                    {maternalLine.length > 0 ? (
-                      (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">No maternal lineage data</p>
-                    )}
-                  </ul>
-                </div>
-              )}
+              {/* Paternal Line - Always First Column */}
+              <div className="space-y-3" style={{ visibility: showPaternal ? 'visible' : 'hidden' }}>
+                {showPaternal && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-genealogy-male flex items-center gap-2 border-b border-border pb-2">
+                        <span className="w-3 h-3 rounded-full bg-genealogy-male"></span>
+                        Paternal Line
+                      </h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpandedSide('paternal')}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <ul className="space-y-4">
+                      {paternalLine.length > 0 ? (
+                        (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No paternal lineage data</p>
+                      )}
+                    </ul>
+                  </>
+                )}
+              </div>
 
-              {/* Paternal Line */}
-              {showPaternal && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-genealogy-male flex items-center gap-2 border-b border-border pb-2">
-                      <span className="w-3 h-3 rounded-full bg-genealogy-male"></span>
-                      Paternal Line
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setExpandedSide('paternal')}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <ul className="space-y-4">
-                    {paternalLine.length > 0 ? (
-                      (sortOrder === 'asc' ? paternalLine : [...paternalLine].reverse()).map(pid => renderPerson(pid))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">No paternal lineage data</p>
-                    )}
-                  </ul>
-                </div>
-              )}
+              {/* Maternal Line - Always Second Column */}
+              <div className="space-y-3" style={{ visibility: showMaternal ? 'visible' : 'hidden' }}>
+                {showMaternal && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-genealogy-female flex items-center gap-2 border-b border-border pb-2">
+                        <span className="w-3 h-3 rounded-full bg-genealogy-female"></span>
+                        Maternal Line
+                      </h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpandedSide('maternal')}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <ul className="space-y-4">
+                      {maternalLine.length > 0 ? (
+                        (sortOrder === 'asc' ? maternalLine : [...maternalLine].reverse()).map(pid => renderPerson(pid))
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No maternal lineage data</p>
+                      )}
+                    </ul>
+                  </>
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
               <h3 className={cn(
                 "text-lg font-semibold flex items-center gap-2 border-b border-border pb-2",
-                expandedSide === 'maternal' ? "text-genealogy-female" : "text-genealogy-male"
+                expandedSide === 'paternal' ? "text-genealogy-male" : "text-genealogy-female"
               )}>
                 <span className={cn(
                   "w-3 h-3 rounded-full",
-                  expandedSide === 'maternal' ? "bg-genealogy-female" : "bg-genealogy-male"
+                  expandedSide === 'paternal' ? "bg-genealogy-male" : "bg-genealogy-female"
                 )}></span>
-                {expandedSide === 'maternal' ? 'Maternal Line' : 'Paternal Line'} (Expanded)
+                {expandedSide === 'paternal' ? 'Paternal Line' : 'Maternal Line'} (Expanded)
               </h3>
               <ul className="space-y-4">
-                {(expandedSide === 'maternal' ? maternalLine : paternalLine).length > 0 ? (
+                {(expandedSide === 'paternal' ? paternalLine : maternalLine).length > 0 ? (
                   (sortOrder === 'asc' 
-                    ? (expandedSide === 'maternal' ? maternalLine : paternalLine)
-                    : [...(expandedSide === 'maternal' ? maternalLine : paternalLine)].reverse()
+                    ? (expandedSide === 'paternal' ? paternalLine : maternalLine)
+                    : [...(expandedSide === 'paternal' ? paternalLine : maternalLine)].reverse()
                   ).map(pid => renderPerson(pid))
                 ) : (
                   <p className="text-muted-foreground text-sm">No lineage data</p>

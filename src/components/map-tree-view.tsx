@@ -3,7 +3,9 @@ import type { Person } from "@/types/gedcom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, ZoomIn, ZoomOut } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Globe } from "lucide-react";
 
 interface MapTreeViewProps {
   people: Record<string, Person>;
@@ -12,6 +14,8 @@ interface MapTreeViewProps {
 
 export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [maxGenerations, setMaxGenerations] = useState<number>(6);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
   // Extract unique locations from birth and death places
   const locations = useMemo(() => {
@@ -47,25 +51,54 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
 
   return (
     <div className="space-y-4">
+      {/* Map Controls */}
+      <div className="flex flex-col gap-4 p-4 rounded-lg border border-border bg-card/50">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="generation-select" className="text-sm font-medium">Generations to Display</Label>
+            <Select value={String(maxGenerations)} onValueChange={(v) => setMaxGenerations(Number(v))}>
+              <SelectTrigger id="generation-select" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[3, 6, 9, 12, 15].map(num => (
+                  <SelectItem key={num} value={String(num)}>{num} Generations</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="view-mode" className="text-sm font-medium">View Mode</Label>
+            <Select value={viewMode} onValueChange={(v) => setViewMode(v as '2d' | '3d')}>
+              <SelectTrigger id="view-mode" className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2d">2D Map</SelectItem>
+                <SelectItem value="3d">3D Globe</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Map Placeholder */}
       <div className="bg-muted/30 rounded-lg p-6 border-2 border-dashed border-border">
         <div className="text-center space-y-4">
-          <MapPin className="h-16 w-16 text-muted-foreground mx-auto" />
+          {viewMode === '3d' ? (
+            <Globe className="h-16 w-16 text-muted-foreground mx-auto" />
+          ) : (
+            <MapPin className="h-16 w-16 text-muted-foreground mx-auto" />
+          )}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Interactive Map View</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {viewMode === '3d' ? '3D Globe View' : 'Interactive 2D Map'}
+            </h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              The Map View will display family members' birth and death locations on an interactive world map. 
-              This feature is coming soon and will use geolocation data from your GEDCOM file.
+              The Map View will display family members' birth and death locations on an interactive {viewMode === '3d' ? 'rotating globe' : 'world map'}. 
+              This feature is coming soon and will use geolocation data from your family data.
             </p>
-          </div>
-          <div className="flex gap-2 justify-center">
-            <Button variant="outline" size="sm" disabled>
-              <ZoomIn className="h-4 w-4 mr-2" />
-              Zoom In
-            </Button>
-            <Button variant="outline" size="sm" disabled>
-              <ZoomOut className="h-4 w-4 mr-2" />
-              Zoom Out
-            </Button>
           </div>
         </div>
       </div>
@@ -76,7 +109,7 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              Locations Found in Family Tree
+              Locations Found in Family Data
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -157,7 +190,7 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             <p>No location data found in the current family tree.</p>
-            <p className="text-xs mt-2">Location information comes from birth and death place fields in GEDCOM data.</p>
+            <p className="text-xs mt-2">Location information comes from birth and death place fields in family data.</p>
           </CardContent>
         </Card>
       )}

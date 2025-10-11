@@ -21,7 +21,7 @@ import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut, Activity, MapPin } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, Globe, LogOut, Activity, MapPin, GitBranch, Clock, Workflow } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function FamilyTreeApp() {
@@ -394,64 +394,16 @@ export function FamilyTreeApp() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Overview Section */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex flex-col gap-2 items-start">
-                  <span className="text-lg font-semibold text-muted-foreground">Workspace</span>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    Overview
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{stats.people}</div>
-                    <div className="text-sm text-muted-foreground">People</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{stats.families}</div>
-                    <div className="text-sm text-muted-foreground">Families</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{stats.roots}</div>
-                    <div className="text-sm text-muted-foreground">Roots</div>
-                  </div>
-                </div>
-
-                {!ged && (
-                  <div className="text-center space-y-4 p-6 border-2 border-dashed border-border rounded-lg">
-                    <TreePine className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <div>
-                      <p className="text-muted-foreground mb-4">
-                        Import a <code className="bg-muted px-1 py-0.5 rounded text-xs">.ged</code> file to begin.
-                      </p>
-                      <Button onClick={() => inputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Choose File…
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
+        <div className="grid gap-8">
           {/* Tree Section */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex flex-col gap-3">
-                  <span className="text-lg font-semibold text-muted-foreground">Workspace</span>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <TreePine className="h-5 w-5 text-primary" />
-                      Family Tree Views
-                    </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TreePine className="h-5 w-5 text-primary" />
+                    <span className="text-xl font-bold">Family Tree Workspace</span>
+                  </div>
                   {focus && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">Focus:</span>
@@ -463,26 +415,65 @@ export function FamilyTreeApp() {
                       </Button>
                     </div>
                   )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Stats Section */}
+              {ged && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground font-medium">Generational Overview:</span>
+                  <div className="flex gap-4">
+                    <span><strong>{stats.people}</strong> People</span>
+                    <span><strong>{stats.families}</strong> Families</span>
+                    <span><strong>{stats.roots}</strong> Roots</span>
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {ged ? (
-                  <Tabs defaultValue="list" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-6">
-                      <TabsTrigger value="list" className="flex items-center gap-2">
-                        <TreePine className="h-4 w-4" />
-                        List View
-                      </TabsTrigger>
-                      <TabsTrigger value="circular" className="flex items-center gap-2">
-                        <Circle className="h-4 w-4" />
-                        Circular View
-                      </TabsTrigger>
-                      <TabsTrigger value="map" className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Map View
-                      </TabsTrigger>
-                    </TabsList>
+                </div>
+              )}
+
+              {!ged && (
+                <div className="text-center space-y-4 p-6 border-2 border-dashed border-border rounded-lg">
+                  <TreePine className="h-12 w-12 text-muted-foreground mx-auto" />
+                  <div>
+                    <p className="text-muted-foreground mb-4">
+                      Import a <code className="bg-muted px-1 py-0.5 rounded text-xs">.ged</code> file to begin.
+                    </p>
+                    <Button onClick={() => inputRef.current?.click()}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Choose File…
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {ged ? (
+                <Tabs defaultValue="list" className="w-full">
+                  <TabsList className="flex flex-wrap h-auto gap-2 bg-muted/50 p-2">
+                    <TabsTrigger value="list" className="flex items-center gap-2 flex-1 min-w-[100px]">
+                      <TreePine className="h-4 w-4" />
+                      List
+                    </TabsTrigger>
+                    <TabsTrigger value="circular" className="flex items-center gap-2 flex-1 min-w-[100px]">
+                      <Circle className="h-4 w-4" />
+                      Circular
+                    </TabsTrigger>
+                    <TabsTrigger value="map" className="flex items-center gap-2 flex-1 min-w-[100px]">
+                      <MapPin className="h-4 w-4" />
+                      Map
+                    </TabsTrigger>
+                    <TabsTrigger value="timeline" className="flex items-center gap-2 flex-1 min-w-[100px]" disabled>
+                      <Clock className="h-4 w-4" />
+                      Timeline
+                    </TabsTrigger>
+                    <TabsTrigger value="pedigree" className="flex items-center gap-2 flex-1 min-w-[100px]" disabled>
+                      <GitBranch className="h-4 w-4" />
+                      Pedigree
+                    </TabsTrigger>
+                    <TabsTrigger value="hourglass" className="flex items-center gap-2 flex-1 min-w-[100px]" disabled>
+                      <Workflow className="h-4 w-4" />
+                      Hourglass
+                    </TabsTrigger>
+                  </TabsList>
                     
                     <TabsContent value="list" className="mt-0">
                       <TreeList
@@ -512,30 +503,16 @@ export function FamilyTreeApp() {
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="map" className="mt-0">
-                      <div className="space-y-4">
-                        <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border">
-                          <p className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            View your family tree locations on an interactive map. Displays birth and death places from your GEDCOM data.
-                          </p>
-                        </div>
-                        <MapTreeView
-                          people={ged.people}
-                          onFocus={setFocus}
-                        />
-                      </div>
+                    <TabsContent value="map" className="mt-4">
+                      <MapTreeView
+                        people={ged.people}
+                        onFocus={setFocus}
+                      />
                     </TabsContent>
                   </Tabs>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <TreePine className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p>No tree yet. Import a GEDCOM file to get started.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                ) : null}
+            </CardContent>
+          </Card>
         </div>
       </main>
 
