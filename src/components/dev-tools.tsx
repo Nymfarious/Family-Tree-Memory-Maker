@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff, Loader2, CheckCircle2, XCircle, AlertCircle, Upload, Cloud, Volume2, Activity, ListTodo } from "lucide-react";
+import { Code, Bug, Sparkles, Image, Brain, Zap, RotateCcw, Plus, X, Save, Link as LinkIcon, Copy, Trash2, ShieldAlert, ChevronDown, Eye, EyeOff, Loader2, CheckCircle2, XCircle, AlertCircle, Upload, Cloud, Volume2, Activity, ListTodo, Workflow } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ApiDashboardModal } from "@/components/modals/api-dashboard-modal";
+import { AIWorkspace } from "@/components/ai-workspace";
 
 interface DevToolsProps {
   showChangelog: boolean;
@@ -52,6 +53,8 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
   const [tempAccessOpen, setTempAccessOpen] = useState(true);
   const [devNotesOpen, setDevNotesOpen] = useState(true);
   const [apiIntegrationsOpen, setApiIntegrationsOpen] = useState(true);
+  const [flowchartOpen, setFlowchartOpen] = useState(false);
+  const [showAIWorkspace, setShowAIWorkspace] = useState(false);
   
   // Temporary Access state
   const [tempEmail, setTempEmail] = useState("");
@@ -984,6 +987,37 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
 
           <Separator />
 
+          {/* AI Flowchart Workspace */}
+          <Collapsible open={flowchartOpen} onOpenChange={setFlowchartOpen}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Workflow className="h-4 w-4 text-primary" />
+                AI Flowchart Workspace
+              </h3>
+              <ChevronDown className={`h-4 w-4 transition-transform ${flowchartOpen ? 'transform rotate-180' : ''}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3">
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Create flowcharts with voice input or text descriptions. AI-powered generation with save to local/cloud storage.
+                </p>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    setShowAIWorkspace(true);
+                    setOpen(false);
+                  }}
+                >
+                  <Workflow className="h-3 w-3 mr-2" />
+                  Open Flowchart Workspace
+                </Button>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Separator />
+
           {/* Wishlist Section */}
           <Collapsible defaultOpen className="space-y-3">
             <CollapsibleTrigger className="flex items-center justify-between w-full">
@@ -1195,8 +1229,13 @@ export function DevTools({ showChangelog, onToggleChangelog, showCodeHealth, onT
         </div>
       </SheetContent>
       
+      {/* AI Workspace Modal */}
+      {showAIWorkspace && (
+        <AIWorkspace onClose={() => setShowAIWorkspace(false)} />
+      )}
+
       {/* API Dashboard Modal */}
-      <ApiDashboardModal 
+      <ApiDashboardModal
         open={apiDashboardOpen} 
         onOpenChange={setApiDashboardOpen}
       />
