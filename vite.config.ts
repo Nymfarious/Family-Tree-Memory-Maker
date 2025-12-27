@@ -4,7 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
-  base: '/Family-Tree-Memory-Maker/',
+  base: mode === 'production' ? '/Family-Tree-Memory-Maker/' : '/',
   server: {
     host: "::",
     port: 8080,
