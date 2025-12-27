@@ -13,6 +13,10 @@ export interface Person {
   occupation?: string;
   famc?: string; // family as child (UUID)
   fams?: string[]; // families as spouse (UUIDs)
+  // Media attachments
+  audioFiles?: string[]; // URLs to audio recordings
+  documents?: string[]; // URLs to attached documents (txt, doc, pdf)
+  notes?: string; // Free-form notes/summary
 }
 
 export interface Family {
