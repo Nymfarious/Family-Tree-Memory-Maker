@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Wrench } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -193,11 +194,12 @@ export default function Auth() {
         }
       }
 
+      const redirectBase = import.meta.env.PROD ? '/Family-Tree-Memory-Maker' : '';
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}${redirectBase}/`
         }
       });
 
@@ -285,10 +287,11 @@ export default function Auth() {
         }
       }
 
+      const redirectBase = import.meta.env.PROD ? '/Family-Tree-Memory-Maker' : '';
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}${redirectBase}/`
         }
       });
 
@@ -312,8 +315,9 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      const redirectBase = import.meta.env.PROD ? '/Family-Tree-Memory-Maker' : '';
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}${redirectBase}/auth`,
       });
 
       if (error) throw error;
@@ -327,12 +331,30 @@ export default function Auth() {
     }
   };
 
+  // Dev bypass handler
+  const handleDevBypass = () => {
+    // Set a flag in localStorage to indicate dev bypass mode
+    localStorage.setItem('dev_bypass_auth', 'true');
+    toast.success("Dev bypass activated! Redirecting...");
+    navigate("/");
+  };
+
   if (user) {
     return null; // Will redirect via useEffect
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10 p-4">
+      {/* Environment indicator */}
+      {import.meta.env.DEV && (
+        <div className="fixed top-4 left-4 z-50">
+          <Badge variant="destructive" className="gap-1">
+            <Wrench className="h-3 w-3" />
+            DEV MODE
+          </Badge>
+        </div>
+      )}
+      
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Family Tree App</CardTitle>
@@ -522,6 +544,23 @@ export default function Auth() {
               </form>
             </TabsContent>
           </Tabs>
+          
+          {/* Dev Bypass Button - Only visible in development */}
+          {import.meta.env.DEV && (
+            <div className="mt-6 pt-4 border-t border-border">
+              <Button 
+                onClick={handleDevBypass} 
+                variant="outline" 
+                className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <Wrench className="mr-2 h-4 w-4" />
+                DEV BYPASS - Skip Authentication
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                This button only appears in development mode
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

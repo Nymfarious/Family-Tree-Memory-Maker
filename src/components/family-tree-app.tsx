@@ -45,17 +45,23 @@ export function FamilyTreeApp() {
 
   // Auth check
   useEffect(() => {
+    // Check for dev bypass mode
+    const devBypass = localStorage.getItem('dev_bypass_auth') === 'true';
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
-      if (!session?.user) {
+      // Allow dev bypass in development mode
+      if (!session?.user && !devBypass) {
         navigate("/auth");
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) {
+      // Allow dev bypass in development mode
+      const devBypassActive = localStorage.getItem('dev_bypass_auth') === 'true';
+      if (!session?.user && !devBypassActive) {
         navigate("/auth");
       }
     });
@@ -93,7 +99,10 @@ export function FamilyTreeApp() {
     );
   }
 
-  if (!user) {
+  // Check for dev bypass - allow access without user in dev mode
+  const devBypass = localStorage.getItem('dev_bypass_auth') === 'true';
+  
+  if (!user && !devBypass) {
     return null;
   }
 

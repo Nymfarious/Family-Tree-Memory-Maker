@@ -13,12 +13,15 @@ import GoogleCallback from "./pages/auth/google/callback";
 
 const queryClient = new QueryClient();
 
+// Use basename only in production (GitHub Pages)
+const basename = import.meta.env.PROD ? '/Family-Tree-Memory-Maker' : '';
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename="/Family-Tree-Memory-Maker">
+      <BrowserRouter basename={basename}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
