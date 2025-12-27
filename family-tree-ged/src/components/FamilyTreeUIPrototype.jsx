@@ -143,7 +143,7 @@ window.FamilyTreeUIPrototype = function FamilyTreeUIPrototype() {
   return (
     <div className="wrap">
       <header className="topbar">
-        <h1>Family Tree GED — Prototype</h1>
+        <h1>Family Tree Memory Maker</h1>
             <div className="actions">
               <label className="btn is-interactive" tabIndex="0" data-ix="import:file">
                 <input ref={inputRef} type="file" accept=".ged,text/plain" onChange={onFile} hidden />
