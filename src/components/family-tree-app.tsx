@@ -352,9 +352,7 @@ export function FamilyTreeApp() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <TreePine className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-primary">Family Tree GED</h1>
-              <Badge variant="outline" className="text-xs">Prototype</Badge>
-              <StatusIndicator status="working" size="sm" />
+              <h1 className="text-2xl font-bold text-primary">Family Tree Memory Maker</h1>
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -576,7 +574,7 @@ export function FamilyTreeApp() {
       {/* Footer */}
       <footer className="border-t border-border bg-card/30 py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          Family Tree GEDCOM Parser • Built with React, TypeScript & Tailwind CSS
+          Family Tree Memory Maker • Built with React, TypeScript & Tailwind CSS
         </div>
       </footer>
 

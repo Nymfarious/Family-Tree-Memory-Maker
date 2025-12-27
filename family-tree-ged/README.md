@@ -1,4 +1,4 @@
-# Family Tree GED — Prototype (No-build, Static)
+# Family Tree Memory Maker (No-build, Static)
 
 This is a zero-build static prototype to visualize GEDCOMs and test UI concepts:
 - GEDCOM upload + basic parse (INDI: NAME/SEX/FAMC/FAMS; FAM: HUSB/WIFE/CHIL)
