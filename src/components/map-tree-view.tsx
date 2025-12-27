@@ -6,22 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Globe, Book, Loader2 } from "lucide-react";
+import { MapPin, Globe, Book, Loader2, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { QuickAddPersonModal } from "./modals/quick-add-person-modal";
 
 interface MapTreeViewProps {
   people: Record<string, Person>;
   onFocus?: (pid: string) => void;
+  onAddPerson?: (person: Person) => void;
 }
 
-export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
+export function MapTreeView({ people, onFocus, onAddPerson }: MapTreeViewProps) {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [maxGenerations, setMaxGenerations] = useState<number>(6);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [historicalContext, setHistoricalContext] = useState<string>("");
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const { toast } = useToast();
 
   const handleGetHistoricalContext = async (location?: string) => {
@@ -50,6 +53,12 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
       setHistoricalContext("Unable to fetch historical context at this time.");
     } finally {
       setLoadingHistory(false);
+    }
+  };
+
+  const handleAddPerson = (person: Person) => {
+    if (onAddPerson) {
+      onAddPerson(person);
     }
   };
 
@@ -126,6 +135,14 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
           >
             <Book className="h-4 w-4 mr-2" />
             Historical Context
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setQuickAddOpen(true)}
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Person
           </Button>
         </div>
       </div>
@@ -250,10 +267,15 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
           <CardContent className="p-6 text-center text-muted-foreground space-y-3">
             <p>No location data found in the current family tree.</p>
             <p className="text-xs">Location information comes from birth and death records in uploaded family data.</p>
-            <Button variant="outline" size="sm" disabled className="mt-2">
-              Add Location Data Manually
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2"
+              onClick={() => setQuickAddOpen(true)}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add Person with Location
             </Button>
-            <p className="text-[10px]">Person editor coming soon - edit location data for each person</p>
           </CardContent>
         </Card>
       )}
@@ -281,6 +303,13 @@ export function MapTreeView({ people, onFocus }: MapTreeViewProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Quick Add Person Modal */}
+      <QuickAddPersonModal
+        open={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        onSave={handleAddPerson}
+      />
     </div>
   );
 }

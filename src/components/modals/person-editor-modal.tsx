@@ -3,8 +3,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, MapPin, Briefcase, Calendar, Save } from "lucide-react";
-import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { User, MapPin, Briefcase, Save, Mic, FileText, Upload } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Person } from "@/types/gedcom";
 
@@ -18,6 +19,12 @@ interface PersonEditorModalProps {
 export function PersonEditorModal({ open, onClose, person, onSave }: PersonEditorModalProps) {
   const [editedPerson, setEditedPerson] = useState<Person>(person || {} as Person);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (person) {
+      setEditedPerson(person);
+    }
+  }, [person]);
 
   const handleSave = () => {
     if (onSave) {
@@ -45,9 +52,10 @@ export function PersonEditorModal({ open, onClose, person, onSave }: PersonEdito
         </DialogHeader>
         
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">Basic</TabsTrigger>
             <TabsTrigger value="locations">Locations</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="other">Other</TabsTrigger>
           </TabsList>
 
@@ -148,6 +156,79 @@ export function PersonEditorModal({ open, onClose, person, onSave }: PersonEdito
             </div>
           </TabsContent>
 
+          <TabsContent value="media" className="space-y-4 mt-4">
+            {/* Audio Files Section */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Mic className="h-4 w-4" />
+                Audio Recordings
+              </Label>
+              <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:bg-accent/30 transition-colors cursor-pointer">
+                <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm font-medium">Upload Audio Files</p>
+                <p className="text-xs text-muted-foreground">
+                  Voice recordings, interviews, oral histories
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-2 italic">
+                  Coming Soon - File upload support
+                </p>
+              </div>
+              {editedPerson.audioFiles && editedPerson.audioFiles.length > 0 && (
+                <div className="space-y-1">
+                  {editedPerson.audioFiles.map((file, idx) => (
+                    <div key={idx} className="text-xs p-2 bg-muted rounded flex items-center gap-2">
+                      <Mic className="h-3 w-3" />
+                      {file}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Documents Section */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Documents
+              </Label>
+              <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:bg-accent/30 transition-colors cursor-pointer">
+                <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm font-medium">Upload Documents</p>
+                <p className="text-xs text-muted-foreground">
+                  Biographies, summaries (.txt, .doc, .pdf)
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-2 italic">
+                  Coming Soon - File upload support
+                </p>
+              </div>
+              {editedPerson.documents && editedPerson.documents.length > 0 && (
+                <div className="space-y-1">
+                  {editedPerson.documents.map((doc, idx) => (
+                    <div key={idx} className="text-xs p-2 bg-muted rounded flex items-center gap-2">
+                      <FileText className="h-3 w-3" />
+                      {doc}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Notes Section */}
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes & Summary</Label>
+              <Textarea
+                id="notes"
+                value={editedPerson.notes || ""}
+                onChange={(e) => updateField('notes', e.target.value)}
+                placeholder="Add personal notes, memories, stories about this person..."
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                Free-form text for memories, stories, or research notes
+              </p>
+            </div>
+          </TabsContent>
+
           <TabsContent value="other" className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="occupation" className="flex items-center gap-2">
@@ -174,7 +255,7 @@ export function PersonEditorModal({ open, onClose, person, onSave }: PersonEdito
 
             <div className="p-3 rounded-lg bg-muted/50 border border-border">
               <p className="text-xs text-muted-foreground">
-                Additional fields like education, military service, and custom notes will be available in future updates.
+                Additional fields like education, military service, and custom attributes will be available in future updates.
               </p>
             </div>
           </TabsContent>
