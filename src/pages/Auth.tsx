@@ -334,7 +334,7 @@ export default function Auth() {
   // Dev bypass handler
   const handleDevBypass = () => {
     // Set a flag in localStorage to indicate dev bypass mode
-    localStorage.setItem('dev_bypass_auth', 'true');
+    localStorage.setItem('static-karma-dev-mode', 'true');
     toast.success("Dev bypass activated! Redirecting...");
     navigate("/");
   };

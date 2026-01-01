@@ -1,7 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,12 +20,11 @@ import { StatusIndicator } from "@/components/status-indicator";
 import { StorageUtils } from "@/utils/storage";
 import { parseGedcom } from "@/utils/gedcomParser";
 import type { GedcomData, CloudProvider, ChangeLogEntry } from "@/types/gedcom";
-import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings, LogOut, Activity, MapPin, GitBranch, Clock, Workflow } from "lucide-react";
+import { Upload, Save, Cloud, History, Users, TreePine, Home, Circle, Settings as SettingsIcon, LogOut, Activity, MapPin, GitBranch, Clock, Workflow } from "lucide-react";
 
 export function FamilyTreeApp() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const { user, signOut } = useAuth();
   const [ged, setGed] = useState<GedcomData | null>(() => 
     StorageUtils.loadLocal<GedcomData>("ft:ged-last")
   );
@@ -43,32 +41,6 @@ export function FamilyTreeApp() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Auth check
-  useEffect(() => {
-    // Check for dev bypass mode
-    const devBypass = localStorage.getItem('dev_bypass_auth') === 'true';
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
-      // Allow dev bypass in development mode
-      if (!session?.user && !devBypass) {
-        navigate("/auth");
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      // Allow dev bypass in development mode
-      const devBypassActive = localStorage.getItem('dev_bypass_auth') === 'true';
-      if (!session?.user && !devBypassActive) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
   // Calculate stats (must be before any early returns)
   const stats = useMemo(() => {
     if (!ged) return { people: 0, families: 0, roots: 0 };
@@ -80,31 +52,12 @@ export function FamilyTreeApp() {
   }, [ged]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     toast({
       title: "Signed Out",
       description: "You have been signed out successfully.",
     });
   };
-
-  // Early returns AFTER all hooks
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Check for dev bypass - allow access without user in dev mode
-  const devBypass = localStorage.getItem('dev_bypass_auth') === 'true';
-  
-  if (!user && !devBypass) {
-    return null;
-  }
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -374,16 +327,12 @@ export function FamilyTreeApp() {
                 className="hidden"
               />
               <Button 
-                onClick={() => {
-                  setPrefsOpen(true);
-                  setActiveButton('prefs');
-                }} 
+                onClick={() => navigate('/settings')} 
                 variant="ghost" 
                 size="icon" 
-                title="Preferences" 
-                className={`relative ${prefsOpen ? 'ring-2 ring-primary' : ''}`}
+                title="Settings"
               >
-                <Settings className="h-4 w-4" />
+                <SettingsIcon className="h-4 w-4" />
               </Button>
               <div className="relative">
                 <Button 
