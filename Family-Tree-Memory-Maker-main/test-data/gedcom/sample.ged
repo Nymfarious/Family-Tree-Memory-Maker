@@ -1,0 +1,41 @@
+0 HEAD
+1 SOUR Family Tree Maker
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME John /Smith/
+1 SEX M
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Mary /Johnson/
+1 SEX F
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Robert /Smith/
+1 SEX M
+1 FAMC @F1@
+1 FAMS @F2@
+0 @I4@ INDI
+1 NAME Sarah /Brown/
+1 SEX F
+1 FAMS @F2@
+0 @I5@ INDI
+1 NAME Michael /Smith/
+1 SEX M
+1 FAMC @F2@
+0 @I6@ INDI
+1 NAME Emma /Smith/
+1 SEX F
+1 FAMC @F2@
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 CHIL @I3@
+0 @F2@ FAM
+1 HUSB @I3@
+1 WIFE @I4@
+1 CHIL @I5@
+1 CHIL @I6@
+0 TRLR

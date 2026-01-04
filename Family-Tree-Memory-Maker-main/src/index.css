@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Family Tree Design System - Elegant genealogy theme */
+
+@layer base {
+  :root {
+    /* Base palette (Dark UI from spec) */
+    --bg: 222 15% 7%;
+    --fg: 220 15% 92%;
+    --muted-color: 220 8% 60%;
+    --line: 222 12% 17%;
+    --chip: 222 10% 14%;
+
+    /* Brand / status colors */
+    --accent-color: 215 85% 70%;
+    --accent-2: 158 65% 62%;
+    --warn: 38 95% 55%;
+    --danger: 0 72% 58%;
+    
+    /* Ready-Set-Go status colors */
+    --status-red: 0 72% 58%;      /* Not configured */
+    --status-orange: 38 95% 55%;  /* Configured */
+    --status-yellow: 45 93% 58%;  /* Tested */
+    --status-green: 158 65% 62%;  /* Working */
+
+    /* Tailwind semantic token mappings */
+    --background: 222 15% 7%;
+    --foreground: 220 15% 92%;
+    
+    --card: 222 15% 10%;
+    --card-foreground: 220 15% 92%;
+    
+    --popover: 222 15% 10%;
+    --popover-foreground: 220 15% 92%;
+    
+    --primary: 215 85% 70%;
+    --primary-foreground: 222 25% 8%;
+    
+    --secondary: 222 10% 14%;
+    --secondary-foreground: 220 15% 92%;
+    
+    --muted: 222 10% 14%;
+    --muted-foreground: 220 8% 60%;
+    
+    --accent: 215 85% 70%;
+    --accent-foreground: 222 25% 8%;
+    
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 220 15% 92%;
+    
+    --warning: 38 95% 55%;
+    --warning-foreground: 222 25% 8%;
+    
+    --border: 222 12% 17%;
+    --input: 222 12% 17%;
+    --ring: 215 85% 70%;
+
+    /* Genealogy-specific colors */
+    --genealogy-male: 215 85% 70%;
+    --genealogy-female: 340 65% 70%;
+    --genealogy-unknown: 220 8% 60%;
+    
+    /* Tree connection colors */
+    --tree-line: 222 12% 17%;
+    --tree-line-focus: 215 85% 70%;
+
+    --radius: 0.75rem;
+  }
+
+  .light {
+    /* Base palette (Light UI) */
+    --bg: 0 0% 100%;
+    --fg: 222 25% 8%;
+    --muted-color: 220 8% 40%;
+    --line: 220 12% 88%;
+    --chip: 220 10% 95%;
+
+    /* Brand / status colors */
+    --accent-color: 215 85% 50%;
+    --accent-2: 158 65% 42%;
+    --warn: 38 95% 45%;
+    --danger: 0 72% 48%;
+    
+    /* Ready-Set-Go status colors */
+    --status-red: 0 72% 48%;
+    --status-orange: 38 95% 45%;
+    --status-yellow: 45 93% 48%;
+    --status-green: 158 65% 42%;
+
+    /* Tailwind semantic token mappings */
+    --background: 0 0% 100%;
+    --foreground: 222 25% 8%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 8%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 25% 8%;
+    
+    --primary: 215 85% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 220 10% 95%;
+    --secondary-foreground: 222 25% 8%;
+    
+    --muted: 220 10% 95%;
+    --muted-foreground: 220 8% 40%;
+    
+    --accent: 215 85% 50%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --warning: 38 95% 45%;
+    --warning-foreground: 0 0% 100%;
+    
+    --border: 220 12% 88%;
+    --input: 220 12% 88%;
+    --ring: 215 85% 50%;
+
+    /* Genealogy-specific colors */
+    --genealogy-male: 215 85% 50%;
+    --genealogy-female: 340 65% 50%;
+    --genealogy-unknown: 220 8% 40%;
+    
+    /* Tree connection colors */
+    --tree-line: 220 12% 88%;
+    --tree-line-focus: 215 85% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
