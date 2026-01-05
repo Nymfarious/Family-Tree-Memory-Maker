@@ -1,11 +1,22 @@
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
+
+/**
+ * AUTH STUB: Authentication temporarily bypassed for development.
+ * TODO: Re-enable auth by uncommenting the original implementation below.
+ */
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
+  // Bypass all auth - just render children directly
+  return <>{children}</>;
+}
+
+/* ORIGINAL IMPLEMENTATION - Uncomment to re-enable auth:
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isLoading, isDevMode } = useAuth();
@@ -34,3 +45,4 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   return <>{children}</>;
 }
+*/
