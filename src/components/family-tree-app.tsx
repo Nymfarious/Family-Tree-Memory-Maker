@@ -510,6 +510,7 @@ export function FamilyTreeApp() {
                     <TabsContent value="map" className="mt-4">
                       <MapTreeView
                         people={ged.people}
+						childToParents={ged.childToParents}
                         onFocus={setFocus}
                       />
                     </TabsContent>
