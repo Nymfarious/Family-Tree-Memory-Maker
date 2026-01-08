@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { PersonCard } from "./person-card";
 import type { Person, Family } from "@/types/gedcom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +16,9 @@ import {
   Slice, 
   Users, 
   User,
-  Maximize2,
-  Minimize2,
-  Settings2
+  Settings2,
+  Search,
+  AlertTriangle
 } from "lucide-react";
 
 interface CircularTreeViewProps {
@@ -34,11 +34,12 @@ interface PersonPosition {
   generation: number;
   index: number;
   total: number;
-  angle: number; // Store calculated angle for rendering
+  angle: number;
 }
 
 type ViewStyle = 'full-circle' | 'half-fan' | 'quarter-fan';
 type LineageFilter = 'both' | 'maternal' | 'paternal';
+type SortBy = 'name' | 'surname' | 'birth';
 
 export function CircularTreeView({
   rootPerson,
@@ -53,6 +54,57 @@ export function CircularTreeView({
   const [maxGenerations, setMaxGenerations] = useState<number>(5);
   const [compactCards, setCompactCards] = useState<boolean>(true);
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortBy, setSortBy] = useState<SortBy>('name');
+
+  // Update selected person when rootPerson changes
+  useEffect(() => {
+    if (rootPerson && people[rootPerson]) {
+      setSelectedPerson(rootPerson);
+    }
+  }, [rootPerson, people]);
+
+  // DEBUG: Log the data structure to help identify issues
+  useEffect(() => {
+    console.log('CircularTreeView Debug:', {
+      selectedPerson,
+      peopleCount: Object.keys(people).length,
+      familiesCount: Object.keys(families).length,
+      childToParentsCount: Object.keys(childToParents).length,
+      selectedPersonData: people[selectedPerson],
+      parentsOfSelected: childToParents[selectedPerson]
+    });
+  }, [selectedPerson, people, families, childToParents]);
+
+  // Build childToParents from families if not provided or empty
+  const effectiveChildToParents = useMemo(() => {
+    // If childToParents is provided and has data, use it
+    if (childToParents && Object.keys(childToParents).length > 0) {
+      return childToParents;
+    }
+    
+    // Otherwise, build it from families
+    const built: Record<string, string[]> = {};
+    
+    Object.values(families).forEach(family => {
+      if (family.children) {
+        family.children.forEach(childId => {
+          if (!built[childId]) {
+            built[childId] = [];
+          }
+          if (family.husb && !built[childId].includes(family.husb)) {
+            built[childId].push(family.husb);
+          }
+          if (family.wife && !built[childId].includes(family.wife)) {
+            built[childId].push(family.wife);
+          }
+        });
+      }
+    });
+    
+    console.log('Built childToParents from families:', Object.keys(built).length, 'entries');
+    return built;
+  }, [childToParents, families]);
 
   // View style angles
   const getViewAngles = (style: ViewStyle): { start: number; end: number } => {
@@ -73,31 +125,50 @@ export function CircularTreeView({
     const visited = new Set<string>();
     const viewAngles = getViewAngles(viewStyle);
 
+    // Helper to get parents for a person
+    const getParents = (pid: string): string[] => {
+      // First try effectiveChildToParents
+      let parents = effectiveChildToParents[pid] || [];
+      
+      // If no parents found, try looking through families
+      if (parents.length === 0) {
+        const person = people[pid];
+        if (person?.famc) {
+          const family = families[person.famc];
+          if (family) {
+            parents = [];
+            if (family.husb) parents.push(family.husb);
+            if (family.wife) parents.push(family.wife);
+          }
+        }
+      }
+      
+      return parents;
+    };
+
     // Build family tree structure going backwards (to ancestors)
     function addAncestors(pid: string, generation: number, startAngle: number, endAngle: number) {
       if (visited.has(pid) || generation > maxGenerations) return;
+      if (!people[pid]) return; // Skip if person doesn't exist
+      
       visited.add(pid);
 
-      const parents = childToParents[pid] || [];
+      const parents = getParents(pid);
       
       // Filter parents based on lineage selection
-      let filteredParents = parents;
-      if (lineageFilter !== 'both' && parents.length >= 1) {
-        // Get the family to determine which parent is which
-        const familyId = Object.keys(families).find(fid => {
-          const fam = families[fid];
-          return fam.children?.includes(pid);
-        });
-        
-        if (familyId) {
-          const family = families[familyId];
-          const fatherId = family.husb;
-          const motherId = family.wife;
-          
-          if (lineageFilter === 'paternal') {
-            filteredParents = fatherId ? [fatherId] : [];
-          } else if (lineageFilter === 'maternal') {
-            filteredParents = motherId ? [motherId] : [];
+      let filteredParents = parents.filter(p => people[p]); // Only include existing people
+      
+      if (lineageFilter !== 'both' && filteredParents.length >= 1) {
+        // Find the family to determine which parent is which
+        const person = people[pid];
+        if (person?.famc) {
+          const family = families[person.famc];
+          if (family) {
+            if (lineageFilter === 'paternal' && family.husb && people[family.husb]) {
+              filteredParents = [family.husb];
+            } else if (lineageFilter === 'maternal' && family.wife && people[family.wife]) {
+              filteredParents = [family.wife];
+            }
           }
         }
       }
@@ -106,6 +177,8 @@ export function CircularTreeView({
       const anglePerParent = filteredParents.length > 0 ? angleRange / filteredParents.length : 0;
 
       filteredParents.forEach((parentId, idx) => {
+        if (!people[parentId]) return; // Skip non-existent parents
+        
         const parentStartAngle = startAngle + (anglePerParent * idx);
         const parentEndAngle = parentStartAngle + anglePerParent;
         const parentAngle = (parentStartAngle + parentEndAngle) / 2;
@@ -124,25 +197,27 @@ export function CircularTreeView({
     }
 
     // Start with selected person at center (generation 0)
-    result.push({
-      pid: selectedPerson,
-      generation: 0,
-      index: 0,
-      total: 1,
-      angle: 0
-    });
+    if (people[selectedPerson]) {
+      result.push({
+        pid: selectedPerson,
+        generation: 0,
+        index: 0,
+        total: 1,
+        angle: 0
+      });
 
-    // Add ancestors
-    addAncestors(selectedPerson, 0, viewAngles.start, viewAngles.end);
+      // Add ancestors
+      addAncestors(selectedPerson, 0, viewAngles.start, viewAngles.end);
+    }
 
+    console.log('Positions calculated:', result.length, 'people');
     return result;
-  }, [selectedPerson, childToParents, lineageFilter, families, maxGenerations, viewStyle]);
+  }, [selectedPerson, effectiveChildToParents, lineageFilter, families, maxGenerations, viewStyle, people]);
 
   const getPositionStyle = (pos: PersonPosition) => {
     const { generation, angle } = pos;
     
     if (generation === 0) {
-      // Center position for root person
       return {
         left: '50%',
         top: '50%',
@@ -151,15 +226,11 @@ export function CircularTreeView({
       };
     }
 
-    // Radius increases with each generation
     const baseRadius = compactCards ? 100 : 140;
     const radiusIncrement = compactCards ? 100 : 160;
     const radius = baseRadius + (generation * radiusIncrement);
 
-    // Convert to Cartesian coordinates
     const angleRad = (angle * Math.PI) / 180;
-    
-    // Adjust for viewport - scale based on view style
     const scaleFactor = viewStyle === 'full-circle' ? 3.5 : viewStyle === 'quarter-fan' ? 5 : 4;
     const x = 50 + (radius * Math.cos(angleRad)) / scaleFactor;
     const y = 50 + (radius * Math.sin(angleRad)) / scaleFactor;
@@ -172,10 +243,39 @@ export function CircularTreeView({
     };
   };
 
-  // Get list of all people for selector
-  const peopleList = Object.entries(people)
-    .map(([pid, person]) => ({ pid, name: person.name || 'Unknown' }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  // Get list of all people for selector with search and sort
+  const peopleList = useMemo(() => {
+    let list = Object.entries(people)
+      .map(([pid, person]) => ({ 
+        pid, 
+        name: person.name || 'Unknown',
+        surname: person.surname || '',
+        birthYear: person.birthYear || extractYear(person.birth)
+      }));
+    
+    // Filter by search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      list = list.filter(p => 
+        p.name.toLowerCase().includes(term) ||
+        p.surname.toLowerCase().includes(term)
+      );
+    }
+    
+    // Sort
+    list.sort((a, b) => {
+      switch (sortBy) {
+        case 'surname':
+          return (a.surname || 'ZZZ').localeCompare(b.surname || 'ZZZ');
+        case 'birth':
+          return (a.birthYear || 9999) - (b.birthYear || 9999);
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+    
+    return list;
+  }, [people, searchTerm, sortBy]);
 
   // Count ancestors by generation
   const generationCounts = useMemo(() => {
@@ -185,6 +285,9 @@ export function CircularTreeView({
     });
     return counts;
   }, [positions]);
+
+  // Check if we have a data issue
+  const hasDataIssue = positions.length <= 1 && Object.keys(people).length > 1;
 
   return (
     <div className="space-y-4">
@@ -217,18 +320,57 @@ export function CircularTreeView({
         </CardHeader>
         
         <CardContent className="space-y-4">
+          {/* Data Issue Warning */}
+          {hasDataIssue && (
+            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-yellow-700 dark:text-yellow-300">No ancestors found</p>
+                <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">
+                  This person may not have parent relationships in your GEDCOM. Try selecting a different person 
+                  who has parents linked, or check your GEDCOM data has FAMC (family as child) tags.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Person Selector */}
+            {/* Person Search & Selector */}
             <div className="flex-1 space-y-2">
-              <Label htmlFor="person-select" className="text-sm font-medium">Center Person</Label>
+              <Label className="text-sm font-medium">Find Person</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">By Name</SelectItem>
+                    <SelectItem value="surname">By Surname</SelectItem>
+                    <SelectItem value="birth">By Birth Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Select value={selectedPerson} onValueChange={setSelectedPerson}>
-                <SelectTrigger id="person-select">
-                  <SelectValue />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select center person" />
                 </SelectTrigger>
-                <SelectContent>
-                  {peopleList.map(({ pid, name }) => (
+                <SelectContent className="max-h-[300px]">
+                  {peopleList.map(({ pid, name, surname, birthYear }) => (
                     <SelectItem key={pid} value={pid}>
-                      {name}
+                      <span className="flex items-center gap-2">
+                        {name}
+                        {surname && <Badge variant="outline" className="text-xs">{surname}</Badge>}
+                        {birthYear && <span className="text-xs text-muted-foreground">b. {birthYear}</span>}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -261,7 +403,7 @@ export function CircularTreeView({
                       <Slice className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Half Fan (180°)</TooltipContent>
+                  <TooltipContent>Half Fan (180°) - Classic Pedigree</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -273,7 +415,7 @@ export function CircularTreeView({
                       <Slice className="h-4 w-4 rotate-45" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Quarter Fan (90°)</TooltipContent>
+                  <TooltipContent>Quarter Fan (90°) - Printable</TooltipContent>
                 </Tooltip>
               </div>
             </div>
@@ -324,10 +466,9 @@ export function CircularTreeView({
             </div>
           </div>
 
-          {/* Advanced Settings (collapsible) */}
+          {/* Advanced Settings */}
           {showSettings && (
             <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t">
-              {/* Generations Slider */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm">Max Generations</Label>
@@ -340,17 +481,12 @@ export function CircularTreeView({
                   max={11}
                   step={1}
                 />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>2</span>
-                  <span>11</span>
-                </div>
               </div>
 
-              {/* Compact Mode Toggle */}
               <div className="flex items-center justify-between space-x-2">
                 <div>
                   <Label htmlFor="compact-mode" className="text-sm">Compact Cards</Label>
-                  <p className="text-xs text-muted-foreground">Show smaller cards for better overview</p>
+                  <p className="text-xs text-muted-foreground">Smaller cards for overview</p>
                 </div>
                 <Switch
                   id="compact-mode"
@@ -379,9 +515,8 @@ export function CircularTreeView({
           {positions.map(pos => {
             if (pos.generation === 0) return null;
             
-            // Find the child of this person (the person one generation down)
             const childPos = positions.find(p => {
-              const parentsOfChild = childToParents[p.pid] || [];
+              const parentsOfChild = effectiveChildToParents[p.pid] || [];
               return parentsOfChild.includes(pos.pid);
             });
             
@@ -395,7 +530,6 @@ export function CircularTreeView({
             const x2 = parseFloat(String(childStyle.left));
             const y2 = parseFloat(String(childStyle.top));
 
-            // Color based on lineage
             const person = people[pos.pid];
             const isFemale = person?.sex?.toLowerCase() === 'f' || person?.sex?.toLowerCase() === 'female';
             const strokeColor = isFemale 
@@ -433,7 +567,7 @@ export function CircularTreeView({
               <PersonCard
                 pid={pos.pid}
                 people={people}
-                childToParents={childToParents}
+                childToParents={effectiveChildToParents}
                 onFocus={onFocus}
                 showPin={true}
                 compact={compactCards}
@@ -447,13 +581,15 @@ export function CircularTreeView({
           </div>
         ))}
 
-        {/* No ancestors message */}
-        {positions.length === 1 && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center p-4 bg-muted/80 rounded-lg">
-              <p className="text-muted-foreground">No ancestors found for this person.</p>
+        {/* No ancestors message - only show if truly no data */}
+        {positions.length === 1 && Object.keys(people).length > 1 && (
+          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-center">
+            <div className="text-center p-4 bg-card/90 backdrop-blur rounded-lg border shadow-lg max-w-md">
+              <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+              <p className="font-medium">No ancestors found for this person</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Try selecting a different person or check your GEDCOM data.
+                Try selecting someone who has parent relationships defined in your GEDCOM.
+                Look for people with (FAMC) family links.
               </p>
             </div>
           </div>
@@ -461,4 +597,11 @@ export function CircularTreeView({
       </div>
     </div>
   );
+}
+
+// Helper function
+function extractYear(date?: string): number | null {
+  if (!date) return null;
+  const match = date.match(/\b(1[0-9]{3}|20[0-2][0-9])\b/);
+  return match ? parseInt(match[1]) : null;
 }

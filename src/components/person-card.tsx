@@ -1,11 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pin, StickyNote, ChevronDown, ChevronUp } from "lucide-react";
+import { 
+  Pin, StickyNote, ChevronDown, ChevronUp, MapPin, 
+  Globe, Flag, Users, Calendar
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Person } from "@/types/gedcom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface PersonCardProps {
   pid: string;
@@ -13,9 +17,11 @@ interface PersonCardProps {
   childToParents: Record<string, string[]>;
   onFocus?: (pid: string) => void;
   onNotesClick?: (pid: string) => void;
+  onLocationClick?: (location: string) => void;
   className?: string;
   showPin?: boolean;
-  compact?: boolean; // New prop for compact mode
+  compact?: boolean;
+  showLocationDetails?: boolean; // NEW: Show expandable location info
 }
 
 interface CardDisplayPreferences {
@@ -24,7 +30,7 @@ interface CardDisplayPreferences {
   showNickname: boolean;
   showMaidenName: boolean;
   showOccupation: boolean;
-  compactMode: boolean; // New preference
+  compactMode: boolean;
 }
 
 const DEFAULT_PREFERENCES: CardDisplayPreferences = {
@@ -36,20 +42,74 @@ const DEFAULT_PREFERENCES: CardDisplayPreferences = {
   compactMode: false,
 };
 
+// US state abbreviations for detection
+const US_STATES = new Set([
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA',
+  'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT',
+  'VA', 'WA', 'WV', 'WI', 'WY', 'DC',
+  // Full names
+  'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+  'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+  'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+  'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+  'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+  'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+  'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+  'Wisconsin', 'Wyoming', 'District of Columbia'
+]);
+
+// Check if a location is in the US
+function isUSLocation(location?: string): boolean {
+  if (!location) return false;
+  
+  const parts = location.split(',').map(p => p.trim());
+  
+  // Check if "United States" or "USA" or "US" is in the location
+  if (parts.some(p => /united states|usa|u\.s\.a\.|^us$/i.test(p))) {
+    return true;
+  }
+  
+  // Check if any part is a US state
+  return parts.some(p => US_STATES.has(p));
+}
+
+// Get country from location string
+function getCountry(location?: string): string | null {
+  if (!location) return null;
+  
+  const parts = location.split(',').map(p => p.trim());
+  const lastPart = parts[parts.length - 1];
+  
+  // Common patterns
+  if (/united states|usa|u\.s\.a\.|^us$/i.test(lastPart)) return 'US';
+  if (US_STATES.has(lastPart)) return 'US';
+  if (/england|scotland|wales|ireland|uk|united kingdom|great britain/i.test(lastPart)) return 'UK';
+  if (/germany|deutschland/i.test(lastPart)) return 'Germany';
+  if (/france/i.test(lastPart)) return 'France';
+  if (/canada/i.test(lastPart)) return 'Canada';
+  if (/mexico/i.test(lastPart)) return 'Mexico';
+  
+  return lastPart.length > 2 ? lastPart : null;
+}
+
 export function PersonCard({ 
   pid, 
   people, 
   childToParents, 
   onFocus, 
   onNotesClick,
+  onLocationClick,
   className, 
   showPin = false,
-  compact: compactProp 
+  compact: compactProp,
+  showLocationDetails = false
 }: PersonCardProps) {
   const person = people[pid];
   const [isPinned, setIsPinned] = useState(false);
   const [preferences, setPreferences] = useState<CardDisplayPreferences>(DEFAULT_PREFERENCES);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showLocationExpanded, setShowLocationExpanded] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('card-display-preferences');
@@ -60,11 +120,24 @@ export function PersonCard({
 
   if (!person) return null;
 
-  // Use prop if provided, otherwise use saved preference
   const isCompact = compactProp !== undefined ? compactProp : preferences.compactMode;
-
   const parents = childToParents[pid] || [];
   const sex = person.sex?.toLowerCase();
+
+  // Location analysis
+  const birthIsUS = isUSLocation(person.birthPlace);
+  const deathIsUS = isUSLocation(person.deathPlace);
+  const birthCountry = getCountry(person.birthPlace);
+  const deathCountry = getCountry(person.deathPlace);
+
+  // Find others at same location
+  const othersAtBirthPlace = useMemo(() => {
+    if (!person.birthPlace) return [];
+    return Object.entries(people)
+      .filter(([id, p]) => id !== pid && p.birthPlace === person.birthPlace)
+      .map(([id, p]) => ({ id, name: p.name || 'Unknown' }))
+      .slice(0, 5);
+  }, [people, pid, person.birthPlace]);
 
   const getSexColor = (sex?: string) => {
     switch (sex) {
@@ -79,7 +152,6 @@ export function PersonCard({
     }
   };
 
-  // Extract year from date string
   const extractYear = (date?: string) => {
     if (!date) return null;
     const match = date.match(/\b(1[0-9]{3}|20[0-2][0-9])\b/);
@@ -96,14 +168,44 @@ export function PersonCard({
       ? `d. ${deathYear}`
       : null;
 
-  // Check if person has notes
   const hasNotes = person.notes && person.notes.length > 0;
 
-  // Check if person is maternal line (for maiden name display)
   const isMaternalLine = parents.some(parentId => {
     const parent = people[parentId];
     return parent?.sex?.toLowerCase() === 'f' || parent?.sex?.toLowerCase() === 'female';
   });
+
+  // Location badge component
+  const LocationBadge = ({ isUS, country }: { isUS: boolean; country: string | null }) => (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge 
+          variant="outline" 
+          className={cn(
+            "text-[10px] h-4 px-1 gap-0.5",
+            isUS 
+              ? "border-blue-500/50 text-blue-600 dark:text-blue-400" 
+              : "border-purple-500/50 text-purple-600 dark:text-purple-400"
+          )}
+        >
+          {isUS ? (
+            <>
+              <Flag className="h-2.5 w-2.5" />
+              US
+            </>
+          ) : (
+            <>
+              <Globe className="h-2.5 w-2.5" />
+              {country || 'INT'}
+            </>
+          )}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        {isUS ? 'United States' : country || 'International'}
+      </TooltipContent>
+    </Tooltip>
+  );
 
   // =========================================================================
   // COMPACT VIEW
@@ -120,7 +222,6 @@ export function PersonCard({
         tabIndex={0}
         onClick={() => onFocus?.(pid)}
       >
-        {/* Pin button */}
         {showPin && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -139,46 +240,31 @@ export function PersonCard({
                 <Pin className={cn("h-2.5 w-2.5", isPinned && "fill-current")} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{isPinned ? "Unpin person" : "Pin person"}</TooltipContent>
+            <TooltipContent>{isPinned ? "Unpin" : "Pin"}</TooltipContent>
           </Tooltip>
         )}
 
         <CardContent className="p-2">
           <div className="flex items-center gap-2">
-            {/* Sex indicator */}
-            <div className={cn("w-2 h-full rounded-full flex-shrink-0", getSexColor(sex).replace('text-white', ''))} />
+            <div className={cn("w-2 h-8 rounded-full flex-shrink-0", getSexColor(sex).replace('text-white', ''))} />
             
-            {/* Name and years */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="font-medium text-sm truncate group-hover:text-primary transition-colors">
                   {person.name || pid}
                 </span>
                 {hasNotes && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-4 w-4 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onNotesClick?.(pid);
-                        }}
-                      >
-                        <StickyNote className="h-3 w-3 text-yellow-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>View notes</TooltipContent>
-                  </Tooltip>
+                  <StickyNote className="h-3 w-3 text-yellow-500 flex-shrink-0" />
                 )}
               </div>
-              {yearsDisplay && (
-                <span className="text-xs text-muted-foreground">{yearsDisplay}</span>
-              )}
+              <div className="flex items-center gap-1">
+                {yearsDisplay && (
+                  <span className="text-xs text-muted-foreground">{yearsDisplay}</span>
+                )}
+                {person.birthPlace && <LocationBadge isUS={birthIsUS} country={birthCountry} />}
+              </div>
             </div>
 
-            {/* Expand button */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -202,7 +288,7 @@ export function PersonCard({
   }
 
   // =========================================================================
-  // FULL VIEW (existing layout with minor enhancements)
+  // FULL VIEW
   // =========================================================================
   return (
     <Card 
@@ -233,11 +319,10 @@ export function PersonCard({
               <Pin className={cn("h-3 w-3", isPinned && "fill-current")} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{isPinned ? "Unpin person" : "Pin person"}</TooltipContent>
+          <TooltipContent>{isPinned ? "Unpin" : "Pin"}</TooltipContent>
         </Tooltip>
       )}
 
-      {/* Collapse button (only in compact mode when expanded) */}
       {isCompact && isExpanded && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -269,7 +354,6 @@ export function PersonCard({
                 <p className="text-xs text-muted-foreground italic">"{person.nickname}"</p>
               )}
             </div>
-            {/* Notes button */}
             {hasNotes && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -307,19 +391,91 @@ export function PersonCard({
             )}
           </div>
 
-          {/* Birth and Death Information */}
+          {/* Birth and Death Information with Location Indicators */}
           {(preferences.showBirth || preferences.showDeath) && (person.birth || person.death || person.birthPlace || person.deathPlace) && (
             <div className="text-xs text-muted-foreground space-y-1">
               {preferences.showBirth && (person.birth || person.birthPlace) && (
                 <div>
-                  <span className="font-medium">Born:</span> {person.birth}
-                  {person.birthPlace && <span className="block ml-11 text-[10px]">{person.birthPlace}</span>}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">Born:</span> 
+                    <span>{person.birth}</span>
+                    {person.birthPlace && <LocationBadge isUS={birthIsUS} country={birthCountry} />}
+                  </div>
+                  {person.birthPlace && (
+                    <Collapsible 
+                      open={showLocationExpanded && showLocationDetails}
+                      onOpenChange={() => showLocationDetails && setShowLocationExpanded(!showLocationExpanded)}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <button 
+                          className="flex items-center gap-1 ml-11 text-[10px] text-primary hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (showLocationDetails) {
+                              setShowLocationExpanded(!showLocationExpanded);
+                            } else {
+                              onLocationClick?.(person.birthPlace!);
+                            }
+                          }}
+                        >
+                          <MapPin className="h-3 w-3" />
+                          {person.birthPlace}
+                          {showLocationDetails && (
+                            showLocationExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </button>
+                      </CollapsibleTrigger>
+                      
+                      {showLocationDetails && (
+                        <CollapsibleContent>
+                          <div className="ml-11 mt-1 p-2 rounded bg-muted/50 space-y-1">
+                            {othersAtBirthPlace.length > 0 && (
+                              <div className="flex items-center gap-1 text-[10px]">
+                                <Users className="h-3 w-3" />
+                                <span>{othersAtBirthPlace.length} others born here:</span>
+                              </div>
+                            )}
+                            {othersAtBirthPlace.map(other => (
+                              <button
+                                key={other.id}
+                                className="block text-[10px] text-primary hover:underline ml-4"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onFocus?.(other.id);
+                                }}
+                              >
+                                {other.name}
+                              </button>
+                            ))}
+                            {othersAtBirthPlace.length === 0 && (
+                              <p className="text-[10px] text-muted-foreground">Only person born at this location</p>
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      )}
+                    </Collapsible>
+                  )}
                 </div>
               )}
               {preferences.showDeath && (person.death || person.deathPlace) && (
                 <div>
-                  <span className="font-medium">Died:</span> {person.death}
-                  {person.deathPlace && <span className="block ml-11 text-[10px]">{person.deathPlace}</span>}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">Died:</span>
+                    <span>{person.death}</span>
+                    {person.deathPlace && <LocationBadge isUS={deathIsUS} country={deathCountry} />}
+                  </div>
+                  {person.deathPlace && (
+                    <button 
+                      className="flex items-center gap-1 ml-11 text-[10px] text-primary hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLocationClick?.(person.deathPlace!);
+                      }}
+                    >
+                      <MapPin className="h-3 w-3" />
+                      {person.deathPlace}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -332,7 +488,7 @@ export function PersonCard({
             </div>
           )}
 
-          {/* Second Wife Placeholder */}
+          {/* Second Spouse */}
           {person.fams && person.fams.length > 1 && (
             <Tooltip>
               <TooltipTrigger asChild>
