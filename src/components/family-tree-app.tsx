@@ -536,6 +536,7 @@ export function FamilyTreeApp() {
       <PreferencesModal 
         open={prefsOpen} 
         onClose={() => setPrefsOpen(false)} 
+		people={ged?.people || {}}
       />
       <ImportGedcomModal
         open={importOpen}

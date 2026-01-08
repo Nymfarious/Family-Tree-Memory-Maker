@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  isInitialized: boolean; // NEW: Track if auth has been initialized
+  isInitialized: boolean;
   isDevMode: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -27,8 +27,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.getItem(DEV_MODE_KEY) === "true"
   );
   
-  // Use ref to prevent race conditions
+  // Use refs to track initialization state for callbacks (avoids stale closure)
   const initRef = useRef(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     // Prevent double initialization in React Strict Mode
@@ -39,7 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        // Get the current session first
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -51,12 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(currentSession?.user ?? null);
           setIsLoading(false);
           setIsInitialized(true);
+          initializedRef.current = true; // ← Update ref too
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) {
           setIsLoading(false);
           setIsInitialized(true);
+          initializedRef.current = true;
         }
       }
     };
@@ -70,10 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(newSession);
           setUser(newSession?.user ?? null);
           
-          // Only set loading to false if we haven't initialized yet
-          if (!isInitialized) {
+          // Use ref to check if already initialized (avoids stale closure)
+          if (!initializedRef.current) {
             setIsLoading(false);
             setIsInitialized(true);
+            initializedRef.current = true;
           }
         }
       }
@@ -119,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       await supabase.auth.signOut();
-      // Clear dev mode on sign out
       localStorage.removeItem(DEV_MODE_KEY);
       setIsDevMode(false);
     } finally {
