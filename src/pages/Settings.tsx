@@ -17,16 +17,32 @@ import {
   Code, 
   Wrench,
   Globe,
-  User
+  User,
+  GitBranch
 } from "lucide-react";
 
-const APP_VERSION = "1.0.0";
+// ═══════════════════════════════════════════════════════════════════════════
+// VERSION HISTORY
+// ═══════════════════════════════════════════════════════════════════════════
+// v1.0.0 - Initial release
+// v2.0.0 - Major UI overhaul, circular views
+// v2.1.0 - Location cleanup, historical context
+// v2.2.0 - Phase 1: 11 generations, compact cards, fan views
+// v2.2.1 - Phase 1 deployed
+// v2.2.2 - Phase 2: ProtectedRoute fix, location list, notes
+// v2.2.3 - Phase 3: Auth blip fix, actual gen count, dev mode prefs
+// v2.2.4 - Phase 4: Quick add death fields, integrated locations
+// ═══════════════════════════════════════════════════════════════════════════
+
+const APP_VERSION = "2.2.4";
+const BUILD_DATE = "January 2026";
 
 export default function Settings() {
   const navigate = useNavigate();
   const { user, isDevMode, setDevMode, signOut } = useAuth();
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [devOptionsOpen, setDevOptionsOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -76,7 +92,10 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Version</span>
-              <Badge variant="secondary">{APP_VERSION}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{APP_VERSION}</Badge>
+                <Badge variant="outline" className="text-[10px]">{BUILD_DATE}</Badge>
+              </div>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground flex items-center gap-2">
@@ -87,6 +106,73 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Version History */}
+        <Collapsible open={versionHistoryOpen} onOpenChange={setVersionHistoryOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors rounded-t-lg">
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <GitBranch className="h-5 w-5 text-primary" />
+                    Version History
+                  </span>
+                  <ChevronDown 
+                    className={`h-5 w-5 transition-transform ${versionHistoryOpen ? "rotate-180" : ""}`} 
+                  />
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-3">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-3 p-2 rounded bg-primary/5 border border-primary/20">
+                    <Badge variant="default" className="mt-0.5">v2.2.4</Badge>
+                    <div>
+                      <p className="font-medium">Phase 4 - Current</p>
+                      <p className="text-xs text-muted-foreground">Quick add death fields, integrated location panel</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-2 rounded hover:bg-muted/50">
+                    <Badge variant="outline" className="mt-0.5">v2.2.3</Badge>
+                    <div>
+                      <p className="font-medium">Phase 3</p>
+                      <p className="text-xs text-muted-foreground">Auth blip fix, actual gen count, dev mode prefs, root person</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-2 rounded hover:bg-muted/50">
+                    <Badge variant="outline" className="mt-0.5">v2.2.2</Badge>
+                    <div>
+                      <p className="font-medium">Phase 2</p>
+                      <p className="text-xs text-muted-foreground">ProtectedRoute fix, location list, notes popup</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-2 rounded hover:bg-muted/50">
+                    <Badge variant="outline" className="mt-0.5">v2.2.1</Badge>
+                    <div>
+                      <p className="font-medium">Phase 1</p>
+                      <p className="text-xs text-muted-foreground">11 generations, compact cards, fan views, favicon</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-2 rounded hover:bg-muted/50">
+                    <Badge variant="outline" className="mt-0.5">v2.1.0</Badge>
+                    <div>
+                      <p className="font-medium">Location Features</p>
+                      <p className="text-xs text-muted-foreground">Location cleanup, historical context API</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-2 rounded hover:bg-muted/50">
+                    <Badge variant="outline" className="mt-0.5">v2.0.0</Badge>
+                    <div>
+                      <p className="font-medium">Major Rewrite</p>
+                      <p className="text-xs text-muted-foreground">UI overhaul, circular tree views, Supabase auth</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Account */}
         <Card>
@@ -147,7 +233,6 @@ export default function Settings() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-6">
-                {/* Built with assistance from */}
                 <div>
                   <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wide">
                     Built with assistance from
@@ -160,7 +245,6 @@ export default function Settings() {
 
                 <Separator />
 
-                {/* Powered by */}
                 <div>
                   <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wide">
                     Powered by
@@ -175,7 +259,6 @@ export default function Settings() {
 
                 <Separator />
 
-                {/* Open Source Libraries */}
                 <div>
                   <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wide">
                     Open Source Libraries
