@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FileText, Archive } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, FileText, Archive, Infinity } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ImportGedcomModalProps {
   open: boolean;
@@ -22,7 +24,8 @@ export function ImportGedcomModal({ open, onClose, onImport, file }: ImportGedco
   const [isProcessing, setIsProcessing] = useState(false);
   const [gedcomFiles, setGedcomFiles] = useState<Array<{ name: string; content: string }>>([]);
   const [selectedFile, setSelectedFile] = useState<string>("");
-  const [generations, setGenerations] = useState<number>(7);
+  const [generations, setGenerations] = useState<number>(11);
+  const [importAll, setImportAll] = useState<boolean>(true); // Default to ALL
   const [isZip, setIsZip] = useState(false);
 
   useEffect(() => {
@@ -33,7 +36,8 @@ export function ImportGedcomModal({ open, onClose, onImport, file }: ImportGedco
       setStep("rename");
       setGedcomFiles([]);
       setSelectedFile("");
-      setGenerations(7);
+      setGenerations(11);
+      setImportAll(true); // Default to importing whole file
     }
   }, [file, open]);
 
@@ -95,7 +99,9 @@ export function ImportGedcomModal({ open, onClose, onImport, file }: ImportGedco
   const handleImport = () => {
     const selected = gedcomFiles.find(f => f.name === selectedFile);
     if (!selected) return;
-    onImport(selected.content, filename, generations);
+    // Use a very high number (999) to mean "all" when importAll is checked
+    const effectiveGenerations = importAll ? 999 : generations;
+    onImport(selected.content, filename, effectiveGenerations);
     onClose();
   };
 
@@ -105,7 +111,8 @@ export function ImportGedcomModal({ open, onClose, onImport, file }: ImportGedco
     setIsProcessing(false);
     setGedcomFiles([]);
     setSelectedFile("");
-    setGenerations(7);
+    setGenerations(11);
+    setImportAll(true);
     onClose();
   };
 
@@ -129,7 +136,7 @@ export function ImportGedcomModal({ open, onClose, onImport, file }: ImportGedco
             
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="filename">File Name</Label>
+                <Label htmlFor="filename">Tree Name</Label>
                 <Input
                   id="filename"
                   value={filename}
@@ -189,33 +196,65 @@ export function ImportGedcomModal({ open, onClose, onImport, file }: ImportGedco
         {step === "generations" && (
           <>
             <DialogHeader>
-              <DialogTitle>Select Generations</DialogTitle>
+              <DialogTitle>Import Options</DialogTitle>
               <DialogDescription>
-                Choose how many consecutive generations to display (3-7)
+                Choose how much of the tree to import
               </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-6 py-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Number of Generations</Label>
-                  <Badge variant="secondary" className="text-lg font-bold">
-                    {generations}
-                  </Badge>
-                </div>
-                <Slider
-                  value={[generations]}
-                  onValueChange={(value) => setGenerations(value[0])}
-                  min={3}
-                  max={7}
-                  step={1}
-                  className="w-full"
+              {/* Import All Toggle */}
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-border bg-muted/30">
+                <Checkbox
+                  id="import-all"
+                  checked={importAll}
+                  onCheckedChange={(checked) => setImportAll(!!checked)}
                 />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>3 (Minimum)</span>
-                  <span>7 (Maximum)</span>
+                <div className="flex-1">
+                  <Label htmlFor="import-all" className="font-medium cursor-pointer flex items-center gap-2">
+                    <Infinity className="h-4 w-4" />
+                    Import Entire File
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Recommended - imports all generations in the GEDCOM
+                  </p>
                 </div>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="secondary">Default</Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Importing the whole file ensures you don't miss any ancestors
+                  </TooltipContent>
+                </Tooltip>
               </div>
+
+              {/* Generation Selector (only if not importing all) */}
+              {!importAll && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Number of Generations</Label>
+                    <Badge variant="secondary" className="text-lg font-bold">
+                      {generations}
+                    </Badge>
+                  </div>
+                  <Slider
+                    value={[generations]}
+                    onValueChange={(value) => setGenerations(value[0])}
+                    min={3}
+                    max={11}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>3 (Parents, Grandparents)</span>
+                    <span>11 (Max display)</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground bg-yellow-500/10 border border-yellow-500/30 p-2 rounded">
+                    ⚠️ Limiting generations may exclude some ancestors from the tree views.
+                  </div>
+                </div>
+              )}
 
               <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
                 Selected file: <code className="bg-muted px-1 py-0.5 rounded">{selectedFile}</code>
@@ -225,7 +264,7 @@ export function ImportGedcomModal({ open, onClose, onImport, file }: ImportGedco
             <DialogFooter>
               <Button variant="outline" onClick={handleClose}>Cancel</Button>
               <Button onClick={handleImport}>
-                Import
+                Import {importAll ? "All" : `${generations} Generations`}
               </Button>
             </DialogFooter>
           </>
